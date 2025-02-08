@@ -133,14 +133,14 @@
         class MealPlanner {
             constructor() {
                 this.days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
-                this.ingredients = {
+                
+                // Default ingredients if no saved state
+                this.defaultIngredients = {
                     protein: ['Chicken', 'Beef', 'Fish', 'Tofu', 'Eggs', 'Pork', 'Shrimp'],
                     vegetable: ['Broccoli', 'Spinach', 'Carrots', 'Asparagus', 'Bell Peppers', 'Cauliflower', 'Zucchini'],
                     starch: ['Rice', 'Potatoes', 'Quinoa', 'Pasta', 'Sweet Potato', 'Bread', 'Couscous']
                 };
-                this.mealPlan = {};
-                this.dayDescriptions = {};
-                
+
                 // Bind methods to ensure correct context
                 this.renderDays = this.renderDays.bind(this);
                 this.renderIngredients = this.renderIngredients.bind(this);
@@ -151,21 +151,58 @@
                 this.handleDrop = this.handleDrop.bind(this);
                 this.handleAddIngredient = this.handleAddIngredient.bind(this);
                 this.handleDeleteIngredient = this.handleDeleteIngredient.bind(this);
-                
-                this.initializeMealPlan();
-                this.renderDays();
-                this.renderIngredients();
+                this.saveState = this.saveState.bind(this);
+                this.loadState = this.loadState.bind(this);
+
+                // Load or initialize state
+                this.loadState();
             }
 
-            initializeMealPlan() {
+            saveState() {
+                // Save current state to localStorage
+                localStorage.setItem('mealPlannerState', JSON.stringify({
+                    ingredients: this.ingredients,
+                    mealPlan: this.mealPlan,
+                    dayDescriptions: this.dayDescriptions
+                }));
+            }
+
+            loadState() {
+                // Try to load saved state from localStorage
+                const savedState = localStorage.getItem('mealPlannerState');
+                
+                if (savedState) {
+                    // Parse saved state
+                    const parsedState = JSON.parse(savedState);
+                    
+                    // Restore ingredients, meal plan, and descriptions
+                    this.ingredients = parsedState.ingredients || this.defaultIngredients;
+                    this.mealPlan = parsedState.mealPlan || {};
+                    this.dayDescriptions = parsedState.dayDescriptions || {};
+                } else {
+                    // Initialize with default state if no saved state
+                    this.ingredients = JSON.parse(JSON.stringify(this.defaultIngredients));
+                    this.mealPlan = {};
+                    this.dayDescriptions = {};
+                }
+
+                // Ensure all days are initialized
                 this.days.forEach(day => {
-                    this.mealPlan[day] = {
-                        protein: [],
-                        vegetable: [],
-                        starch: []
-                    };
-                    this.dayDescriptions[day] = '';
+                    if (!this.mealPlan[day]) {
+                        this.mealPlan[day] = {
+                            protein: [],
+                            vegetable: [],
+                            starch: []
+                        };
+                    }
+                    if (!this.dayDescriptions[day]) {
+                        this.dayDescriptions[day] = '';
+                    }
                 });
+
+                // Render everything
+                this.renderDays();
+                this.renderIngredients();
             }
 
             renderDays() {
@@ -190,9 +227,15 @@
                     
                     // Add event listener for description changes
                     const descriptionTextarea = dayColumn.querySelector('.day-description');
-                    descriptionTextarea.addEventListener('input', this.handleDescriptionChange);
+                    descriptionTextarea.addEventListener('input', (e) => {
+                        this.handleDescriptionChange(e);
+                        this.saveState();
+                    });
                     
-                    dayColumn.addEventListener('click', this.handleRemoveMealItem);
+                    dayColumn.addEventListener('click', (e) => {
+                        this.handleRemoveMealItem(e);
+                        this.saveState();
+                    });
                     daysGrid.appendChild(dayColumn);
                 });
             }
@@ -228,7 +271,10 @@
                         <input type="text" placeholder="Add new ${type}" data-type="${type}">
                         <button type="submit">Add</button>
                     `;
-                    addForm.addEventListener('submit', this.handleAddIngredient);
+                    addForm.addEventListener('submit', (e) => {
+                        this.handleAddIngredient(e);
+                        this.saveState();
+                    });
                     ingredientList.appendChild(addForm);
 
                     const title = document.createElement('h3');
@@ -253,7 +299,10 @@
                         ingredientEl.addEventListener('dragstart', this.handleDragStart);
                         
                         const deleteBtn = ingredientEl.querySelector('.delete-ingredient-btn');
-                        deleteBtn.addEventListener('click', this.handleDeleteIngredient);
+                        deleteBtn.addEventListener('click', (e) => {
+                            this.handleDeleteIngredient(e);
+                            this.saveState();
+                        });
 
                         ingredientList.appendChild(ingredientEl);
                     });
@@ -263,7 +312,10 @@
 
                 document.querySelectorAll('.meal-slot').forEach(slot => {
                     slot.addEventListener('dragover', this.handleDragOver);
-                    slot.addEventListener('drop', this.handleDrop);
+                    slot.addEventListener('drop', (e) => {
+                        this.handleDrop(e);
+                        this.saveState();
+                    });
                 });
             }
 
