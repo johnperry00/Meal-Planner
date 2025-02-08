@@ -30,8 +30,25 @@
             min-height: 50px;
             margin: 5px 0;
             display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            align-content: flex-start;
+            justify-content: flex-start;
+        }
+        .meal-item {
+            background-color: #f0f0f0;
+            padding: 5px;
+            margin: 2px;
+            display: flex;
             align-items: center;
-            justify-content: center;
+            border-radius: 3px;
+        }
+        .meal-item-remove {
+            background: none;
+            border: none;
+            color: red;
+            margin-left: 5px;
+            cursor: pointer;
         }
         .ingredient-section {
             display: grid;
@@ -118,9 +135,9 @@
             initializeMealPlan() {
                 this.days.forEach(day => {
                     this.mealPlan[day] = {
-                        protein: null,
-                        vegetable: null,
-                        starch: null
+                        protein: [],
+                        vegetable: [],
+                        starch: []
                     };
                 });
             }
@@ -133,12 +150,34 @@
                     dayColumn.className = 'day-column';
                     dayColumn.innerHTML = `
                         <h2>${day}</h2>
-                        <div class="meal-slot protein-slot" data-day="${day}" data-type="protein">Protein</div>
-                        <div class="meal-slot vegetable-slot" data-day="${day}" data-type="vegetable">Vegetable</div>
-                        <div class="meal-slot starch-slot" data-day="${day}" data-type="starch">Starch</div>
+                        <div class="meal-slot protein-slot" data-day="${day}" data-type="protein">
+                            ${this.renderMealItems(day, 'protein')}
+                        </div>
+                        <div class="meal-slot vegetable-slot" data-day="${day}" data-type="vegetable">
+                            ${this.renderMealItems(day, 'vegetable')}
+                        </div>
+                        <div class="meal-slot starch-slot" data-day="${day}" data-type="starch">
+                            ${this.renderMealItems(day, 'starch')}
+                        </div>
                     `;
+                    
+                    // Add event listeners for removing meal items
+                    dayColumn.addEventListener('click', this.handleRemoveMealItem.bind(this));
+                    
                     daysGrid.appendChild(dayColumn);
                 });
+            }
+
+            renderMealItems(day, type) {
+                const items = this.mealPlan[day][type];
+                return items.length > 0 
+                    ? items.map(item => 
+                        `<div class="meal-item" data-day="${day}" data-type="${type}" data-item="${item}">
+                            ${item}
+                            <button class="meal-item-remove">✖</button>
+                        </div>`
+                    ).join('')
+                    : `${type.charAt(0).toUpperCase() + type.slice(1)}`;
             }
 
             renderIngredients() {
@@ -202,9 +241,9 @@
             }
 
             countIngredientOccurrences(type, item) {
-                return Object.values(this.mealPlan).filter(day => 
-                    day[type] === item
-                ).length;
+                return Object.values(this.mealPlan).reduce((total, day) => 
+                    total + day[type].filter(i => i === item).length, 0
+                );
             }
 
             handleDragStart(e) {
@@ -220,22 +259,27 @@
 
             handleDrop(e) {
                 e.preventDefault();
-                const slotType = e.target.getAttribute('data-type');
-                const slotDay = e.target.getAttribute('data-day');
+                const slot = e.target.closest('.meal-slot');
+                const slotType = slot.getAttribute('data-type');
+                const slotDay = slot.getAttribute('data-day');
                 
                 // Parse the dragged item data
                 const dragData = JSON.parse(e.dataTransfer.getData('text/plain'));
 
                 // Only allow dropping if types match
                 if (dragData.type === slotType) {
-                    // Update meal plan
-                    this.mealPlan[slotDay][slotType] = dragData.item;
-                    
-                    // Update display
-                    e.target.textContent = dragData.item;
-                    
-                    // Re-render ingredients to update counts
-                    this.renderIngredients();
+                    // Check if item already exists
+                    const dayMeals = this.mealPlan[slotDay][slotType];
+                    if (!dayMeals.includes(dragData.item)) {
+                        // Add item to meal plan
+                        dayMeals.push(dragData.item);
+                        
+                        // Update display
+                        this.renderDays();
+                        
+                        // Re-render ingredients to update counts
+                        this.renderIngredients();
+                    }
                 }
             }
 
@@ -274,6 +318,22 @@
                 
                 // Re-render ingredients
                 this.renderIngredients();
+            }
+
+            handleRemoveMealItem(e) {
+                if (e.target.classList.contains('meal-item-remove')) {
+                    const mealItem = e.target.closest('.meal-item');
+                    const day = mealItem.getAttribute('data-day');
+                    const type = mealItem.getAttribute('data-type');
+                    const item = mealItem.getAttribute('data-item');
+
+                    // Remove the item from the meal plan
+                    this.mealPlan[day][type] = this.mealPlan[day][type].filter(i => i !== item);
+
+                    // Update display and counts
+                    this.renderDays();
+                    this.renderIngredients();
+                }
             }
         }
 
