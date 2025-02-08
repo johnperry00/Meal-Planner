@@ -3,25 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weekly Menu Planner</title>
+    <title>Weekly Menu</title>
     <style>
         body {
             font-family: sans-serif;
+            margin: 0; /* Remove default body margin */
             display: flex;
             flex-direction: column;
-            align-items: center;
+            min-height: 100vh; /* Ensure full viewport height */
         }
 
-        .container { /* New container for layout */
+        .container {
             display: grid;
-            grid-template-columns: repeat(7, 1fr) 3fr; /* 7 days + 3 ingredient columns */
+            grid-template-columns: repeat(7, 1fr) 3fr;
             gap: 10px;
-            width: 90%; /* Adjust as needed */
-            margin-top: 20px;
+            padding: 10px;
+            flex-grow: 1; /* Allow container to expand to fill available space */
         }
 
         .menu-container {
-            grid-column: 1 / 8; /* Span all 7 day columns */
+            grid-column: 1 / 8;
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 10px;
@@ -33,12 +34,44 @@
             text-align: center;
         }
 
-        /* ... (Rest of the CSS styles - meal, ingredient, category) ... */
-        .ingredient-category-column {
-            grid-column: 8 / 11; /* Place ingredient categories in the last 3 columns */
-            padding: 10px;
+        .meal-slot {
+            border: 1px dashed #eee;
+            padding: 5px;
+            min-height: 40px;
+            margin-bottom: 5px;
+            background-color: #f8f8f8;
+            display: flex; /* Use flexbox for alignment */
+            flex-direction: column; /* Stack ingredients vertically */
+            align-items: center; /* Center ingredients horizontally */
         }
 
+        .ingredient {
+            background-color: #e0e0e0;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: move;
+            margin: 2px; /* Add some space around ingredients */
+            display: flex;
+            align-items: center;
+        }
+        .ingredient span {
+            cursor: default;
+            margin-left: 5px;
+            color: gray;
+        }
+        .ingredient input[type="text"] {
+            border: none;
+            background: transparent;
+            width: auto;
+            outline: none;
+        }
+        .add-ingredient {
+            margin-top: 10px;
+        }
+        .ingredient-category-column {
+            grid-column: 8 / 11;
+            padding: 10px;
+        }
         .category {
             border: 1px solid #ccc;
             padding: 10px;
@@ -47,81 +80,166 @@
         .category h2 {
             margin-bottom: 5px;
         }
-        .ingredient {
-            background-color: #e0e0e0;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: move;
-            margin-right: 5px; /* Add some space between ingredients */
-            display: inline-block; /* Prevent ingredients from stacking vertically */
-        }
-        .ingredient span {
-            cursor: default; /* Make the 'x' not draggable */
+        .counter {
             margin-left: 5px;
+            font-size: smaller;
             color: gray;
         }
-        .ingredient input[type="text"] {
-            border: none;
-            background: transparent;
-            width: auto; /* Adjust as needed */
-            outline: none;
-        }
-        .add-ingredient {
-            margin-top: 10px;
+
+        /* Responsive Styles */
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-areas:
+                    "menu"
+                    "ingredients";
+            }
+
+            .menu-container {
+                grid-area: menu;
+                grid-template-columns: repeat(3, 1fr); /* Adjust as needed */
+            }
+
+            .ingredient-category-column {
+                grid-area: ingredients;
+                grid-column: 1;
+            }
         }
 
+        @media (max-width: 600px) {
+            .menu-container {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>Weekly Menu Planner</h1>
+    <h1>Weekly Menu</h1>
 
-    <div class="container">  <div class="menu-container">
-            <div class="day"><h2>Monday</h2><div class="meal" id="monday-breakfast" data-day="monday" data-meal="breakfast"></div><div class="meal" id="monday-lunch" data-day="monday" data-meal="lunch"></div><div class="meal" id="monday-dinner" data-day="monday" data-meal="dinner"></div></div>
-            <div class="day"><h2>Tuesday</h2><div class="meal" id="tuesday-breakfast" data-day="tuesday" data-meal="breakfast"></div><div class="meal" id="tuesday-lunch" data-day="tuesday" data-meal="lunch"></div><div class="meal" id="tuesday-dinner" data-day="tuesday" data-meal="dinner"></div></div>
-            <div class="day"><h2>Wednesday</h2><div class="meal" id="wednesday-breakfast" data-day="wednesday" data-meal="breakfast"></div><div class="meal" id="wednesday-lunch" data-day="wednesday" data-meal="lunch"></div><div class="meal" id="wednesday-dinner" data-day="wednesday" data-meal="dinner"></div></div>
-            <div class="day"><h2>Thursday</h2><div class="meal" id="thursday-breakfast" data-day="thursday" data-meal="breakfast"></div><div class="meal" id="thursday-lunch" data-day="thursday" data-meal="lunch"></div><div class="meal" id="thursday-dinner" data-day="thursday" data-meal="dinner"></div></div>
-            <div class="day"><h2>Friday</h2><div class="meal" id="friday-breakfast" data-day="friday" data-meal="breakfast"></div><div class="meal" id="friday-lunch" data-day="friday" data-meal="lunch"></div><div class="meal" id="friday-dinner" data-day="friday" data-meal="dinner"></div></div>
-            <div class="day"><h2>Saturday</h2><div class="meal" id="saturday-breakfast" data-day="saturday" data-meal="breakfast"></div><div class="meal" id="saturday-lunch" data-day="saturday" data-meal="lunch"></div><div class="meal" id="saturday-dinner" data-day="saturday" data-meal="dinner"></div></div>
-            <div class="day"><h2>Sunday</h2><div class="meal" id="sunday-breakfast" data-day="sunday" data-meal="breakfast"></div><div class="meal" id="sunday-lunch" data-day="sunday" data-meal="lunch"></div><div class="meal" id="sunday-dinner" data-day="sunday" data-meal="dinner"></div></div>
-
-        </div>
-
-        <div class="ingredient-category-column">  <div class="category">
-                <h2>Protein</h2>
-                <div class="ingredient-list" id="protein-list">
-                    </div>
-                <div class="add-ingredient">
-                    <input type="text" id="add-protein" placeholder="Add Protein">
-                    <button onclick="addIngredient('protein')">Add</button>
-                </div>
+    <div class="container">
+        <div class="menu-container">
             </div>
 
-            <div class="category">
-                <h2>Vegetables</h2>
-                <div class="ingredient-list" id="vegetable-list">
-                    </div>
-                <div class="add-ingredient">
-                    <input type="text" id="add-vegetable" placeholder="Add Vegetable">
-                    <button onclick="addIngredient('vegetable')">Add</button>
-                </div>
-            </div>
-
-            <div class="category">
-                <h2>Starch</h2>
-                <div class="ingredient-list" id="starch-list">
-                    </div>
-                <div class="add-ingredient">
-                    <input type="text" id="add-starch" placeholder="Add Starch">
-                    <button onclick="addIngredient('starch')">Add</button>
-                </div>
-            </div>
+        <div class="ingredient-category-column">
         </div>
     </div>
 
 
     <script>
-        // ... (JavaScript code - same as the previous version) ...
-    </script>
+        const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+        const categories = ["protein", "vegetables", "starch"];
 
-</body>
-</html>
+        const menuContainer = document.querySelector(".menu-container");
+        const ingredientColumn = document.querySelector(".ingredient-category-column");
+
+        // Create days and meal slots dynamically
+        days.forEach(dayName => {
+            const day = document.createElement("div");
+            day.classList.add("day");
+            day.innerHTML = `<h2>${dayName}</h2>`;
+            categories.forEach(category => {
+                const mealSlot = document.createElement("div");
+                mealSlot.classList.add("meal-slot");
+                mealSlot.dataset.day = dayName.toLowerCase();
+                mealSlot.dataset.category = category;
+                day.appendChild(mealSlot);
+            });
+            menuContainer.appendChild(day);
+        });
+
+        // Create ingredient categories dynamically
+        categories.forEach(categoryName => {
+            const categoryDiv = document.createElement("div");
+            categoryDiv.classList.add("category");
+            categoryDiv.innerHTML = `<h2><span class="math-inline">\{categoryName\.charAt\(0\)\.toUpperCase\(\) \+ categoryName\.slice\(1\)\}</h2\><div class\="ingredient\-list" id\="</span>{categoryName}-list"></div><div class="add-ingredient"><input type="text" id="add-${categoryName}" placeholder="Add <span class="math-inline">\{categoryName\.charAt\(0\)\.toUpperCase\(\) \+ categoryName\.slice\(1\)\}"\><button onclick\="addIngredient\('</span>{categoryName}')">Add</button></div>`;
+            ingredientColumn.appendChild(categoryDiv);
+        });
+
+        const ingredientLists = {
+            protein: document.getElementById("protein-list"),
+            vegetables: document.getElementById("vegetables-list"),
+            starch: document.getElementById("starch-list")
+        };
+
+
+        function addIngredient(category) {
+            const input = document.getElementById(`add-${category}`);
+            const ingredientName = input.value.trim();
+
+            if (ingredientName !== "") {
+                const newList = ingredientLists[category];
+                const newIngredient = createIngredientElement(ingredientName, category);
+                newList.appendChild(newIngredient);
+                input.value = "";
+            }
+        }
+
+        function createIngredientElement(ingredientName, category) {
+            const newIngredient = document.createElement('div');
+            newIngredient.classList.add('ingredient');
+            newIngredient.draggable = true;
+            newIngredient.dataset.ingredient = ingredientName;
+            newIngredient.dataset.category = category;
+
+            const span = document.createElement('span');
+            span.textContent = ingredientName;
+            newIngredient.appendChild(span);
+
+            const deleteSpan = document.createElement('span');
+            deleteSpan.textContent = "x";
+            deleteSpan.classList.add('delete');
+            deleteSpan.addEventListener('click', deleteIngredient);
+            newIngredient.appendChild(deleteSpan);
+
+            newIngredient.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', JSON.stringify({ ingredient: newIngredient.dataset.ingredient, category: newIngredient.dataset.category }));
+            });
+            return newIngredient;
+        }
+
+        function deleteIngredient(event) {
+            const ingredient = event.target.parentNode;
+            ingredient.remove();
+        }
+
+        // Drag and Drop
+        const mealSlots = document.querySelectorAll('.meal-slot');
+        const ingredientListsArray = Object.values(ingredientLists); // Convert to array
+
+        ingredientListsArray.forEach(list => {
+            list.addEventListener('dragover', (e) => e.preventDefault());
+            list.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const ingredientData = JSON.parse(e.dataTransfer.getData('text/plain'));
+                const newIngredient = createIngredientElement(ingredientData.ingredient, ingredientData.category);
+                list.appendChild(newIngredient);
+            });
+        });
+
+        mealSlots.forEach(mealSlot => {
+            mealSlot.addEventListener('dragover', (e) => e.preventDefault());
+            mealSlot.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const ingredientData = JSON.parse(e.dataTransfer.getData('text/plain'));
+                const newIngredient = createIngredientElement(ingredientData.ingredient, ingredientData.category);
+                mealSlot.appendChild(newIngredient);
+                updateCounter(ingredientData.ingredient);
+            });
+        });
+
+        function updateCounter(ingredientName) {
+            const ingredients = document.querySelectorAll('.ingredient');
+            let count = 0;
+            ingredients.forEach(ingredient => {
+                if (ingredient.dataset.ingredient === ingredientName) {
+                    count++;
+                }
+            });
+
+            // Update or create counter element
+            let counter = null;
+            const existingCounter = document.querySelector(`.counter[data-ingredient="${ingredientName}"]`);
+            if (existingCounter) {
+                counter = existingCounter;
+            } else {
+                counter = document.createElement('span');
