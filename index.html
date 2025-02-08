@@ -3,243 +3,284 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weekly Menu</title>
+    <title>Weekly Meal Planner</title>
     <style>
         body {
-            font-family: sans-serif;
-            margin: 0; /* Remove default body margin */
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+        .meal-planner {
             display: flex;
             flex-direction: column;
-            min-height: 100vh; /* Ensure full viewport height */
         }
-
-        .container {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr) 3fr;
-            gap: 10px;
-            padding: 10px;
-            flex-grow: 1; /* Allow container to expand to fill available space */
-        }
-
-        .menu-container {
-            grid-column: 1 / 8;
+        .days-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 10px;
         }
-
-        .day {
-            border: 1px solid #ccc;
+        .day-column {
+            border: 1px solid #ddd;
             padding: 10px;
             text-align: center;
         }
-
         .meal-slot {
-            border: 1px dashed #eee;
-            padding: 5px;
-            min-height: 40px;
-            margin-bottom: 5px;
-            background-color: #f8f8f8;
-            display: flex; /* Use flexbox for alignment */
-            flex-direction: column; /* Stack ingredients vertically */
-            align-items: center; /* Center ingredients horizontally */
-        }
-
-        .ingredient {
-            background-color: #e0e0e0;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: move;
-            margin: 2px; /* Add some space around ingredients */
+            border: 1px dashed #aaa;
+            min-height: 50px;
+            margin: 5px 0;
             display: flex;
             align-items: center;
+            justify-content: center;
         }
-        .ingredient span {
-            cursor: default;
-            margin-left: 5px;
-            color: gray;
+        .ingredient-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 20px;
         }
-        .ingredient input[type="text"] {
-            border: none;
-            background: transparent;
-            width: auto;
-            outline: none;
-        }
-        .add-ingredient {
-            margin-top: 10px;
-        }
-        .ingredient-category-column {
-            grid-column: 8 / 11;
+        .ingredient-list {
+            border: 1px solid #ddd;
             padding: 10px;
+            position: relative;
         }
-        .category {
-            border: 1px solid #ccc;
-            padding: 10px;
+        .ingredient {
+            background-color: #f0f0f0;
+            margin: 5px 0;
+            padding: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+        .ingredient-count {
+            background-color: #ddd;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        .add-ingredient-form {
+            display: flex;
             margin-bottom: 10px;
         }
-        .category h2 {
-            margin-bottom: 5px;
+        .add-ingredient-form input {
+            flex-grow: 1;
+            margin-right: 5px;
+            padding: 5px;
         }
-        .counter {
+        .delete-ingredient-btn {
+            background: none;
+            border: none;
+            color: red;
+            cursor: pointer;
             margin-left: 5px;
-            font-size: smaller;
-            color: gray;
         }
-
-        /* Responsive Styles */
-        @media (max-width: 900px) {
-            .container {
-                grid-template-columns: 1fr;
-                grid-template-areas:
-                    "menu"
-                    "ingredients";
-            }
-
-            .menu-container {
-                grid-area: menu;
-                grid-template-columns: repeat(3, 1fr); /* Adjust as needed */
-            }
-
-            .ingredient-category-column {
-                grid-area: ingredients;
-                grid-column: 1;
-            }
-        }
-
-        @media (max-width: 600px) {
-            .menu-container {
+        @media (max-width: 768px) {
+            .ingredient-section {
                 grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <h1>Weekly Menu</h1>
-
-    <div class="container">
-        <div class="menu-container">
+    <div id="app">
+        <h1>Weekly Meal Planner</h1>
+        <div class="meal-planner">
+            <div class="days-grid" id="days-grid">
+                <!-- Days will be populated dynamically -->
             </div>
-
-        <div class="ingredient-category-column">
+            <div class="ingredient-section" id="ingredient-section">
+                <!-- Ingredient lists will be populated dynamically -->
+            </div>
         </div>
     </div>
 
-
     <script>
-        const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-        const categories = ["protein", "vegetables", "starch"];
+        // Meal Planner Application
+        class MealPlanner {
+            constructor() {
+                this.days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                this.ingredients = {
+                    protein: ['Chicken', 'Beef', 'Fish', 'Tofu', 'Eggs', 'Pork', 'Shrimp'],
+                    vegetable: ['Broccoli', 'Spinach', 'Carrots', 'Asparagus', 'Bell Peppers', 'Cauliflower', 'Zucchini'],
+                    starch: ['Rice', 'Potatoes', 'Quinoa', 'Pasta', 'Sweet Potato', 'Bread', 'Couscous']
+                };
+                this.mealPlan = {};
+                this.initializeMealPlan();
+                this.renderDays();
+                this.renderIngredients();
+            }
 
-        const menuContainer = document.querySelector(".menu-container");
-        const ingredientColumn = document.querySelector(".ingredient-category-column");
+            initializeMealPlan() {
+                this.days.forEach(day => {
+                    this.mealPlan[day] = {
+                        protein: null,
+                        vegetable: null,
+                        starch: null
+                    };
+                });
+            }
 
-        // Create days and meal slots dynamically
-        days.forEach(dayName => {
-            const day = document.createElement("div");
-            day.classList.add("day");
-            day.innerHTML = `<h2>${dayName}</h2>`;
-            categories.forEach(category => {
-                const mealSlot = document.createElement("div");
-                mealSlot.classList.add("meal-slot");
-                mealSlot.dataset.day = dayName.toLowerCase();
-                mealSlot.dataset.category = category;
-                day.appendChild(mealSlot);
-            });
-            menuContainer.appendChild(day);
-        });
+            renderDays() {
+                const daysGrid = document.getElementById('days-grid');
+                daysGrid.innerHTML = '';
+                this.days.forEach(day => {
+                    const dayColumn = document.createElement('div');
+                    dayColumn.className = 'day-column';
+                    dayColumn.innerHTML = `
+                        <h2>${day}</h2>
+                        <div class="meal-slot protein-slot" data-day="${day}" data-type="protein">Protein</div>
+                        <div class="meal-slot vegetable-slot" data-day="${day}" data-type="vegetable">Vegetable</div>
+                        <div class="meal-slot starch-slot" data-day="${day}" data-type="starch">Starch</div>
+                    `;
+                    daysGrid.appendChild(dayColumn);
+                });
+            }
 
-        // Create ingredient categories dynamically
-        categories.forEach(categoryName => {
-            const categoryDiv = document.createElement("div");
-            categoryDiv.classList.add("category");
-            categoryDiv.innerHTML = `<h2><span class="math-inline">\{categoryName\.charAt\(0\)\.toUpperCase\(\) \+ categoryName\.slice\(1\)\}</h2\><div class\="ingredient\-list" id\="</span>{categoryName}-list"></div><div class="add-ingredient"><input type="text" id="add-${categoryName}" placeholder="Add <span class="math-inline">\{categoryName\.charAt\(0\)\.toUpperCase\(\) \+ categoryName\.slice\(1\)\}"\><button onclick\="addIngredient\('</span>{categoryName}')">Add</button></div>`;
-            ingredientColumn.appendChild(categoryDiv);
-        });
+            renderIngredients() {
+                const ingredientSection = document.getElementById('ingredient-section');
+                ingredientSection.innerHTML = '';
 
-        const ingredientLists = {
-            protein: document.getElementById("protein-list"),
-            vegetables: document.getElementById("vegetables-list"),
-            starch: document.getElementById("starch-list")
-        };
+                Object.entries(this.ingredients).forEach(([type, items]) => {
+                    const ingredientList = document.createElement('div');
+                    ingredientList.className = 'ingredient-list';
+                    
+                    // Add ingredient form
+                    const addForm = document.createElement('form');
+                    addForm.className = 'add-ingredient-form';
+                    addForm.innerHTML = `
+                        <input type="text" placeholder="Add new ${type}" data-type="${type}">
+                        <button type="submit">Add</button>
+                    `;
+                    addForm.addEventListener('submit', this.handleAddIngredient.bind(this));
+                    ingredientList.appendChild(addForm);
 
+                    // Ingredient list title
+                    const title = document.createElement('h3');
+                    title.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+                    ingredientList.appendChild(title);
 
-        function addIngredient(category) {
-            const input = document.getElementById(`add-${category}`);
-            const ingredientName = input.value.trim();
+                    // Render ingredients
+                    items.forEach(item => {
+                        const ingredientEl = document.createElement('div');
+                        ingredientEl.className = 'ingredient';
+                        ingredientEl.setAttribute('draggable', true);
+                        ingredientEl.setAttribute('data-type', type);
+                        ingredientEl.setAttribute('data-item', item);
 
-            if (ingredientName !== "") {
-                const newList = ingredientLists[category];
-                const newIngredient = createIngredientElement(ingredientName, category);
-                newList.appendChild(newIngredient);
-                input.value = "";
+                        // Count occurrences in meal plan
+                        const count = this.countIngredientOccurrences(type, item);
+
+                        ingredientEl.innerHTML = `
+                            <span>${item}</span>
+                            ${count > 0 ? `<div class="ingredient-count">${count}</div>` : ''}
+                            <button class="delete-ingredient-btn" data-type="${type}" data-item="${item}">✖</button>
+                        `;
+
+                        // Drag and drop event listeners
+                        ingredientEl.addEventListener('dragstart', this.handleDragStart.bind(this));
+                        
+                        // Delete ingredient event listener
+                        const deleteBtn = ingredientEl.querySelector('.delete-ingredient-btn');
+                        deleteBtn.addEventListener('click', this.handleDeleteIngredient.bind(this));
+
+                        ingredientList.appendChild(ingredientEl);
+                    });
+
+                    ingredientSection.appendChild(ingredientList);
+                });
+
+                // Add event listeners to meal slots
+                document.querySelectorAll('.meal-slot').forEach(slot => {
+                    slot.addEventListener('dragover', this.handleDragOver.bind(this));
+                    slot.addEventListener('drop', this.handleDrop.bind(this));
+                });
+            }
+
+            countIngredientOccurrences(type, item) {
+                return Object.values(this.mealPlan).filter(day => 
+                    day[type] === item
+                ).length;
+            }
+
+            handleDragStart(e) {
+                e.dataTransfer.setData('text/plain', JSON.stringify({
+                    type: e.target.getAttribute('data-type'),
+                    item: e.target.getAttribute('data-item')
+                }));
+            }
+
+            handleDragOver(e) {
+                e.preventDefault();
+            }
+
+            handleDrop(e) {
+                e.preventDefault();
+                const slotType = e.target.getAttribute('data-type');
+                const slotDay = e.target.getAttribute('data-day');
+                
+                // Parse the dragged item data
+                const dragData = JSON.parse(e.dataTransfer.getData('text/plain'));
+
+                // Only allow dropping if types match
+                if (dragData.type === slotType) {
+                    // Update meal plan
+                    this.mealPlan[slotDay][slotType] = dragData.item;
+                    
+                    // Update display
+                    e.target.textContent = dragData.item;
+                    
+                    // Re-render ingredients to update counts
+                    this.renderIngredients();
+                }
+            }
+
+            handleAddIngredient(e) {
+                e.preventDefault();
+                const input = e.target.querySelector('input');
+                const type = input.getAttribute('data-type');
+                const newItem = input.value.trim();
+
+                // Validate input
+                if (newItem && !this.ingredients[type].includes(newItem)) {
+                    // Add new ingredient
+                    this.ingredients[type].push(newItem);
+                    
+                    // Clear input
+                    input.value = '';
+                    
+                    // Re-render ingredients
+                    this.renderIngredients();
+                }
+            }
+
+            handleDeleteIngredient(e) {
+                const type = e.target.getAttribute('data-type');
+                const item = e.target.getAttribute('data-item');
+
+                // Check if ingredient is used in meal plan
+                const occurrences = this.countIngredientOccurrences(type, item);
+                if (occurrences > 0) {
+                    alert(`Cannot delete ${item}. It is currently used in the meal plan.`);
+                    return;
+                }
+
+                // Remove ingredient from list
+                this.ingredients[type] = this.ingredients[type].filter(i => i !== item);
+                
+                // Re-render ingredients
+                this.renderIngredients();
             }
         }
 
-        function createIngredientElement(ingredientName, category) {
-            const newIngredient = document.createElement('div');
-            newIngredient.classList.add('ingredient');
-            newIngredient.draggable = true;
-            newIngredient.dataset.ingredient = ingredientName;
-            newIngredient.dataset.category = category;
-
-            const span = document.createElement('span');
-            span.textContent = ingredientName;
-            newIngredient.appendChild(span);
-
-            const deleteSpan = document.createElement('span');
-            deleteSpan.textContent = "x";
-            deleteSpan.classList.add('delete');
-            deleteSpan.addEventListener('click', deleteIngredient);
-            newIngredient.appendChild(deleteSpan);
-
-            newIngredient.addEventListener('dragstart', (e) => {
-                e.dataTransfer.setData('text/plain', JSON.stringify({ ingredient: newIngredient.dataset.ingredient, category: newIngredient.dataset.category }));
-            });
-            return newIngredient;
-        }
-
-        function deleteIngredient(event) {
-            const ingredient = event.target.parentNode;
-            ingredient.remove();
-        }
-
-        // Drag and Drop
-        const mealSlots = document.querySelectorAll('.meal-slot');
-        const ingredientListsArray = Object.values(ingredientLists); // Convert to array
-
-        ingredientListsArray.forEach(list => {
-            list.addEventListener('dragover', (e) => e.preventDefault());
-            list.addEventListener('drop', (e) => {
-                e.preventDefault();
-                const ingredientData = JSON.parse(e.dataTransfer.getData('text/plain'));
-                const newIngredient = createIngredientElement(ingredientData.ingredient, ingredientData.category);
-                list.appendChild(newIngredient);
-            });
+        // Initialize the app when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new MealPlanner();
         });
-
-        mealSlots.forEach(mealSlot => {
-            mealSlot.addEventListener('dragover', (e) => e.preventDefault());
-            mealSlot.addEventListener('drop', (e) => {
-                e.preventDefault();
-                const ingredientData = JSON.parse(e.dataTransfer.getData('text/plain'));
-                const newIngredient = createIngredientElement(ingredientData.ingredient, ingredientData.category);
-                mealSlot.appendChild(newIngredient);
-                updateCounter(ingredientData.ingredient);
-            });
-        });
-
-        function updateCounter(ingredientName) {
-            const ingredients = document.querySelectorAll('.ingredient');
-            let count = 0;
-            ingredients.forEach(ingredient => {
-                if (ingredient.dataset.ingredient === ingredientName) {
-                    count++;
-                }
-            });
-
-            // Update or create counter element
-            let counter = null;
-            const existingCounter = document.querySelector(`.counter[data-ingredient="${ingredientName}"]`);
-            if (existingCounter) {
-                counter = existingCounter;
-            } else {
-                counter = document.createElement('span');
+    </script>
+</body>
+</html>
