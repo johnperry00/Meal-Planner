@@ -2,30 +2,40 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Weekly Meal Planner</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.development.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.development.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
         body {
             font-family: Arial, sans-serif;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
+            line-height: 1.6;
+            padding: 10px;
+            background-color: #f4f4f4;
         }
         .meal-planner {
             display: flex;
-            border: 1px solid #ddd;
+            flex-direction: column;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         .days-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            flex-grow: 1;
+            overflow-x: auto;
         }
         .day-column {
             border: 1px solid #ddd;
             padding: 10px;
             text-align: center;
+            min-width: 150px;
         }
         .meal-slot {
             border: 1px dashed #aaa;
@@ -34,24 +44,35 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            background-color: #f9f9f9;
+            border-radius: 4px;
         }
         .ingredient-lists {
-            width: 250px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
             padding: 10px;
             background-color: #f0f0f0;
         }
         .ingredient-list {
-            margin-bottom: 20px;
+            width: 100%;
+            max-width: 300px;
+            margin: 10px;
+            background-color: white;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .ingredient {
             background-color: #e0e0e0;
-            padding: 5px;
+            padding: 10px;
             margin: 5px 0;
             cursor: move;
             text-align: center;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-radius: 4px;
         }
         .ingredient.dragging {
             opacity: 0.5;
@@ -63,6 +84,17 @@
         .add-ingredient-form input {
             flex-grow: 1;
             margin-right: 5px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .add-ingredient-form button {
+            padding: 8px 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
         }
         .delete-ingredient {
             background: none;
@@ -70,13 +102,41 @@
             color: red;
             cursor: pointer;
         }
+
+        /* Mobile Responsiveness */
+        @media screen and (max-width: 768px) {
+            .meal-planner {
+                flex-direction: column;
+            }
+            .days-grid {
+                grid-template-columns: repeat(2, 1fr);
+                overflow-x: auto;
+            }
+            .day-column {
+                min-width: 100%;
+            }
+            .ingredient-lists {
+                flex-direction: column;
+            }
+            .ingredient-list {
+                width: 100%;
+                max-width: 100%;
+            }
+            h1 {
+                font-size: 1.5rem;
+                text-align: center;
+            }
+            .day-column h2 {
+                font-size: 1.2rem;
+            }
+        }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState } = React;
+        const { useState, useEffect } = React;
 
         const App = () => {
             const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -99,6 +159,21 @@
                     }
                 }), {})
             );
+
+            // Prevent zooming on double-tap for mobile
+            useEffect(() => {
+                document.addEventListener('touchstart', function(event) {
+                    if (event.touches.length > 1) {
+                        event.preventDefault();
+                    }
+                }, { passive: false });
+
+                document.addEventListener('touchend', function(event) {
+                    if (event.touches.length > 1) {
+                        event.preventDefault();
+                    }
+                }, { passive: false });
+            }, []);
 
             const handleDragStart = (e, item, type) => {
                 e.dataTransfer.setData('text/plain', JSON.stringify({ item, type }));
