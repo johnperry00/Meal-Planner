@@ -2,392 +2,138 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Weekly Meal Planner</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.development.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.development.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Menu Planner</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            touch-action: manipulation;
-        }
         body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            padding: 10px;
-            background-color: #f4f4f4;
-        }
-        .meal-planner {
+            font-family: sans-serif;
             display: flex;
             flex-direction: column;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .days-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            overflow-x: auto;
-        }
-        .day-column {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: center;
-            min-width: 150px;
-        }
-        .meal-slot {
-            border: 1px dashed #aaa;
-            min-height: 50px;
-            margin: 5px 0;
-            display: flex;
             align-items: center;
-            justify-content: center;
-            background-color: #f9f9f9;
-            border-radius: 4px;
-        }
-        .meal-slot.protein-slot {
-            background-color: #ffe6e6;
-        }
-        .meal-slot.vegetable-slot {
-            background-color: #e6ffe6;
-        }
-        .meal-slot.starch-slot {
-            background-color: #e6f2ff;
-        }
-        .ingredient-lists {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            padding: 10px;
-            background-color: #f0f0f0;
-        }
-        .ingredient-list {
-            background-color: white;
-            border-radius: 8px;
-            padding: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .ingredient {
-            background-color: #e0e0e0;
-            padding: 10px;
-            margin: 5px 0;
-            text-align: center;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-radius: 4px;
-            position: relative;
-            cursor: pointer;
-        }
-        .ingredient.protein {
-            background-color: #ffcccc;
-        }
-        .ingredient.vegetable {
-            background-color: #ccffcc;
-        }
-        .ingredient.starch {
-            background-color: #cce5ff;
-        }
-        .add-ingredient-form {
-            display: flex;
-            margin-bottom: 10px;
-        }
-        .add-ingredient-form input {
-            flex-grow: 1;
-            margin-right: 5px;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        .add-ingredient-form button {
-            padding: 8px 12px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .delete-ingredient {
-            background: none;
-            border: none;
-            color: red;
-            cursor: pointer;
-            position: absolute;
-            right: 5px;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-        .days-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .days-modal {
-            background: white;
-            width: 90%;
-            max-width: 500px;
-            max-height: 80%;
-            overflow-y: auto;
-            border-radius: 10px;
-            padding: 20px;
-        }
-        .day-button {
-            display: block;
-            width: 100%;
-            padding: 15px;
-            margin: 10px 0;
-            background-color: #f0f0f0;
-            border: none;
-            border-radius: 5px;
-            text-align: center;
-            font-size: 16px;
-        }
-        .day-button.protein {
-            background-color: #ffcccc;
-        }
-        .day-button.vegetable {
-            background-color: #ccffcc;
-        }
-        .day-button.starch {
-            background-color: #cce5ff;
         }
 
-        /* Mobile Responsiveness */
-        @media screen and (max-width: 768px) {
-            .ingredient-lists {
-                grid-template-columns: 1fr;
-            }
+        .menu-container {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr); /* 7 days of the week */
+            gap: 10px;
+            width: 80%;
+            margin-top: 20px;
+        }
+
+        .day {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center; /* Center day names */
+        }
+        .day h2 { /* Style the day name */
+            margin-bottom: 5px;
+        }
+
+        .meal {
+            border: 1px dashed #eee; /* Dotted line for meal area */
+            padding: 5px;
+            min-height: 50px; /* Make meal areas visible */
+            margin-bottom: 5px;
+            background-color: #f8f8f8; /* Light background for meal area */
+        }
+
+        .ingredient-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        .ingredient {
+            background-color: #e0e0e0;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: move; /* Indicate draggable */
         }
     </style>
 </head>
 <body>
-    <div id="root"></div>
+    <h1>Weekly Menu Planner</h1>
 
-    <script type="text/babel">
-        const { useState, useRef } = React;
+    <div class="menu-container">
+        <div class="day"><h2>Monday</h2><div class="meal" id="monday-breakfast" data-day="monday" data-meal="breakfast"></div><div class="meal" id="monday-lunch" data-day="monday" data-meal="lunch"></div><div class="meal" id="monday-dinner" data-day="monday" data-meal="dinner"></div></div>
+        <div class="day"><h2>Tuesday</h2><div class="meal" id="tuesday-breakfast" data-day="tuesday" data-meal="breakfast"></div><div class="meal" id="tuesday-lunch" data-day="tuesday" data-meal="lunch"></div><div class="meal" id="tuesday-dinner" data-day="tuesday" data-meal="dinner"></div></div>
+        <div class="day"><h2>Wednesday</h2><div class="meal" id="wednesday-breakfast" data-day="wednesday" data-meal="breakfast"></div><div class="meal" id="wednesday-lunch" data-day="wednesday" data-meal="lunch"></div><div class="meal" id="wednesday-dinner" data-day="wednesday" data-meal="dinner"></div></div>
+        <div class="day"><h2>Thursday</h2><div class="meal" id="thursday-breakfast" data-day="thursday" data-meal="breakfast"></div><div class="meal" id="thursday-lunch" data-day="thursday" data-meal="lunch"></div><div class="meal" id="thursday-dinner" data-day="thursday" data-meal="dinner"></div></div>
+        <div class="day"><h2>Friday</h2><div class="meal" id="friday-breakfast" data-day="friday" data-meal="breakfast"></div><div class="meal" id="friday-lunch" data-day="friday" data-meal="lunch"></div><div class="meal" id="friday-dinner" data-day="friday" data-meal="dinner"></div></div>
+        <div class="day"><h2>Saturday</h2><div class="meal" id="saturday-breakfast" data-day="saturday" data-meal="breakfast"></div><div class="meal" id="saturday-lunch" data-day="saturday" data-meal="lunch"></div><div class="meal" id="saturday-dinner" data-day="saturday" data-meal="dinner"></div></div>
+        <div class="day"><h2>Sunday</h2><div class="meal" id="sunday-breakfast" data-day="sunday" data-meal="breakfast"></div><div class="meal" id="sunday-lunch" data-day="sunday" data-meal="lunch"></div><div class="meal" id="sunday-dinner" data-day="sunday" data-meal="dinner"></div></div>
+    </div>
 
-        const App = () => {
-            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-            const [proteins, setProteins] = useState([
-                'Chicken', 'Beef', 'Fish', 'Tofu', 'Eggs', 'Pork', 'Shrimp'
-            ]);
-            const [vegetables, setVegetables] = useState([
-                'Broccoli', 'Spinach', 'Carrots', 'Asparagus', 'Bell Peppers', 'Cauliflower', 'Zucchini'
-            ]);
-            const [starches, setStarches] = useState([
-                'Rice', 'Potatoes', 'Quinoa', 'Pasta', 'Sweet Potato', 'Bread', 'Couscous'
-            ]);
-            const [mealPlan, setMealPlan] = useState(
-                days.reduce((acc, day) => ({
-                    ...acc,
-                    [day]: {
-                        protein: null,
-                        vegetable: null,
-                        starch: null
-                    }
-                }), {})
-            );
-            const [selectedIngredient, setSelectedIngredient] = useState(null);
-            const [daysOverlayVisible, setDaysOverlayVisible] = useState(false);
-            const touchTimerRef = useRef(null);
+    <div class="ingredient-list" id="ingredient-list">
+        <div class="ingredient" draggable="true" data-ingredient="chicken">Chicken</div>
+        <div class="ingredient" draggable="true" data-ingredient="beef">Beef</div>
+        <div class="ingredient" draggable="true" data-ingredient="pasta">Pasta</div>
+        <div class="ingredient" draggable="true" data-ingredient="rice">Rice</div>
+        <div class="ingredient" draggable="true" data-ingredient="vegetables">Vegetables</div>
+        <div class="ingredient" draggable="true" data-ingredient="fruit">Fruit</div>
+        </div>
 
-            const handleTouchStart = (ingredient, type) => {
-                touchTimerRef.current = setTimeout(() => {
-                    setSelectedIngredient({ item: ingredient, type });
-                    setDaysOverlayVisible(true);
-                }, 500); // 500ms long press
-            };
+    <script>
+        const ingredients = document.querySelectorAll('.ingredient');
+        const meals = document.querySelectorAll('.meal');
+        const ingredientList = document.getElementById('ingredient-list');
 
-            const handleTouchEnd = () => {
-                if (touchTimerRef.current) {
-                    clearTimeout(touchTimerRef.current);
-                }
-            };
+        ingredients.forEach(ingredient => {
+            ingredient.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', ingredient.dataset.ingredient); // Store ingredient data
+            });
+        });
 
-            const handleAddToDay = (day, slot) => {
-                if (selectedIngredient && selectedIngredient.type === slot) {
-                    setMealPlan(prev => ({
-                        ...prev,
-                        [day]: {
-                            ...prev[day],
-                            [slot]: selectedIngredient.item
-                        }
-                    }));
-                    setDaysOverlayVisible(false);
-                    setSelectedIngredient(null);
-                }
-            };
+        meals.forEach(meal => {
+            meal.addEventListener('dragover', (e) => {
+                e.preventDefault(); // Allow drop
+            });
 
-            const IngredientList = ({ ingredients, type, onAdd, onDelete }) => {
-                const [newIngredient, setNewIngredient] = useState('');
+            meal.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const ingredient = e.dataTransfer.getData('text/plain'); // Retrieve ingredient data
+                const newIngredient = document.createElement('div');
+                newIngredient.classList.add('ingredient');
+                newIngredient.draggable = true;
+                newIngredient.dataset.ingredient = ingredient;
+                newIngredient.textContent = ingredient;
 
-                const handleSubmit = (e) => {
-                    e.preventDefault();
-                    if (newIngredient.trim() && !ingredients.includes(newIngredient.trim())) {
-                        onAdd(newIngredient.trim());
-                        setNewIngredient('');
-                    }
-                };
-
-                return (
-                    <div className="ingredient-list">
-                        <h3>{type.charAt(0).toUpperCase() + type.slice(1)}s</h3>
-                        <form onSubmit={handleSubmit} className="add-ingredient-form">
-                            <input 
-                                type="text" 
-                                value={newIngredient}
-                                onChange={(e) => setNewIngredient(e.target.value)}
-                                placeholder={`Add ${type}`}
-                            />
-                            <button type="submit">+</button>
-                        </form>
-                        {ingredients.map((item, index) => (
-                            <div 
-                                key={index} 
-                                className={`ingredient ${type}`}
-                                onTouchStart={() => handleTouchStart(item, type)}
-                                onTouchEnd={handleTouchEnd}
-                                onMouseDown={() => handleTouchStart(item, type)}
-                                onMouseUp={handleTouchEnd}
-                                onMouseLeave={handleTouchEnd}
-                            >
-                                <span>{item}</span>
-                                <button 
-                                    className="delete-ingredient"
-                                    onClick={() => onDelete(item)}
-                                >
-                                    ✖
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                );
-            };
-
-            const handleAddIngredient = (type, ingredient) => {
-                switch(type) {
-                    case 'protein':
-                        setProteins(prev => [...prev, ingredient]);
-                        break;
-                    case 'vegetable':
-                        setVegetables(prev => [...prev, ingredient]);
-                        break;
-                    case 'starch':
-                        setStarches(prev => [...prev, ingredient]);
-                        break;
-                }
-            };
-
-            const handleDeleteIngredient = (type, ingredient) => {
-                // First, remove the ingredient from the meal plan
-                const updatedMealPlan = { ...mealPlan };
-                days.forEach(day => {
-                    Object.keys(updatedMealPlan[day]).forEach(slot => {
-                        if (updatedMealPlan[day][slot] === ingredient) {
-                            updatedMealPlan[day][slot] = null;
-                        }
-                    });
+                // Add drag functionality to newly dropped item
+                newIngredient.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', newIngredient.dataset.ingredient);
                 });
-                setMealPlan(updatedMealPlan);
 
-                // Then remove from the ingredients list
-                switch(type) {
-                    case 'protein':
-                        setProteins(prev => prev.filter(p => p !== ingredient));
-                        break;
-                    case 'vegetable':
-                        setVegetables(prev => prev.filter(v => v !== ingredient));
-                        break;
-                    case 'starch':
-                        setStarches(prev => prev.filter(s => s !== ingredient));
-                        break;
-                }
-            };
 
-            return (
-                <div>
-                    <h1>Weekly Meal Planner</h1>
-                    <div className="meal-planner">
-                        <div className="days-grid">
-                            {days.map(day => (
-                                <div key={day} className="day-column">
-                                    <h2>{day}</h2>
-                                    <div className="meal-slot protein-slot">
-                                        {mealPlan[day].protein || 'Protein'}
-                                    </div>
-                                    <div className="meal-slot vegetable-slot">
-                                        {mealPlan[day].vegetable || 'Vegetable'}
-                                    </div>
-                                    <div className="meal-slot starch-slot">
-                                        {mealPlan[day].starch || 'Starch'}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="ingredient-lists">
-                            <IngredientList 
-                                ingredients={proteins}
-                                type="protein"
-                                onAdd={(ingredient) => handleAddIngredient('protein', ingredient)}
-                                onDelete={(ingredient) => handleDeleteIngredient('protein', ingredient)}
-                            />
-                            <IngredientList 
-                                ingredients={vegetables}
-                                type="vegetable"
-                                onAdd={(ingredient) => handleAddIngredient('vegetable', ingredient)}
-                                onDelete={(ingredient) => handleDeleteIngredient('vegetable', ingredient)}
-                            />
-                            <IngredientList 
-                                ingredients={starches}
-                                type="starch"
-                                onAdd={(ingredient) => handleAddIngredient('starch', ingredient)}
-                                onDelete={(ingredient) => handleDeleteIngredient('starch', ingredient)}
-                            />
-                        </div>
-                    </div>
+                meal.appendChild(newIngredient);
 
-                    <div 
-                        className="days-overlay" 
-                        style={{ display: daysOverlayVisible ? 'flex' : 'none' }}
-                        onClick={() => {
-                            setDaysOverlayVisible(false);
-                            setSelectedIngredient(null);
-                        }}
-                    >
-                        <div className="days-modal" onClick={(e) => e.stopPropagation()}>
-                            {selectedIngredient && days.map(day => (
-                                <div key={day} className="day-section">
-                                    <h2>{day}</h2>
-                                    {['protein', 'vegetable', 'starch'].map(slot => (
-                                        <button
-                                            key={slot}
-                                            className={`day-button ${slot}`}
-                                            onClick={() => handleAddToDay(day, slot)}
-                                            disabled={selectedIngredient.type !== slot}
-                                        >
-                                            {slot.charAt(0).toUpperCase() + slot.slice(1)} Slot
-                                            {mealPlan[day][slot] && `: ${mealPlan[day][slot]}`}
-                                        </button>
-                                    ))}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            );
-        };
+            });
+        });
 
-        ReactDOM.render(<App />, document.getElementById('root'));
+        ingredientList.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        ingredientList.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const ingredient = e.dataTransfer.getData('text/plain');
+            const newIngredient = document.createElement('div');
+            newIngredient.classList.add('ingredient');
+            newIngredient.draggable = true;
+            newIngredient.dataset.ingredient = ingredient;
+            newIngredient.textContent = ingredient;
+
+
+            newIngredient.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', newIngredient.dataset.ingredient);
+            });
+
+            ingredientList.appendChild(newIngredient);
+
+        });
     </script>
+
 </body>
 </html>
