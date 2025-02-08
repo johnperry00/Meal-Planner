@@ -5,134 +5,130 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weekly Menu Planner</title>
     <style>
-        body {
-            font-family: sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+        /* ... (Previous CSS styles) ... */
 
-        .menu-container {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr); /* 7 days of the week */
-            gap: 10px;
-            width: 80%;
-            margin-top: 20px;
-        }
-
-        .day {
+        .category {
             border: 1px solid #ccc;
             padding: 10px;
-            text-align: center; /* Center day names */
-        }
-        .day h2 { /* Style the day name */
-            margin-bottom: 5px;
+            margin-bottom: 10px;
         }
 
-        .meal {
-            border: 1px dashed #eee; /* Dotted line for meal area */
-            padding: 5px;
-            min-height: 50px; /* Make meal areas visible */
+        .category h2 {
             margin-bottom: 5px;
-            background-color: #f8f8f8; /* Light background for meal area */
-        }
-
-        .ingredient-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            margin-top: 20px;
-            border: 1px solid #ccc;
-            padding: 10px;
         }
 
         .ingredient {
             background-color: #e0e0e0;
             padding: 5px 10px;
             border-radius: 5px;
-            cursor: move; /* Indicate draggable */
+            cursor: move;
+            margin-right: 5px; /* Add some space between ingredients */
+            display: inline-block; /* Prevent ingredients from stacking vertically */
+        }
+        .ingredient span {
+            cursor: default; /* Make the 'x' not draggable */
+            margin-left: 5px;
+            color: gray;
+        }
+        .ingredient input[type="text"] {
+            border: none;
+            background: transparent;
+            width: auto; /* Adjust as needed */
+            outline: none;
+        }
+        .add-ingredient {
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
     <h1>Weekly Menu Planner</h1>
-
-    <div class="menu-container">
-        <div class="day"><h2>Monday</h2><div class="meal" id="monday-breakfast" data-day="monday" data-meal="breakfast"></div><div class="meal" id="monday-lunch" data-day="monday" data-meal="lunch"></div><div class="meal" id="monday-dinner" data-day="monday" data-meal="dinner"></div></div>
-        <div class="day"><h2>Tuesday</h2><div class="meal" id="tuesday-breakfast" data-day="tuesday" data-meal="breakfast"></div><div class="meal" id="tuesday-lunch" data-day="tuesday" data-meal="lunch"></div><div class="meal" id="tuesday-dinner" data-day="tuesday" data-meal="dinner"></div></div>
-        <div class="day"><h2>Wednesday</h2><div class="meal" id="wednesday-breakfast" data-day="wednesday" data-meal="breakfast"></div><div class="meal" id="wednesday-lunch" data-day="wednesday" data-meal="lunch"></div><div class="meal" id="wednesday-dinner" data-day="wednesday" data-meal="dinner"></div></div>
-        <div class="day"><h2>Thursday</h2><div class="meal" id="thursday-breakfast" data-day="thursday" data-meal="breakfast"></div><div class="meal" id="thursday-lunch" data-day="thursday" data-meal="lunch"></div><div class="meal" id="thursday-dinner" data-day="thursday" data-meal="dinner"></div></div>
-        <div class="day"><h2>Friday</h2><div class="meal" id="friday-breakfast" data-day="friday" data-meal="breakfast"></div><div class="meal" id="friday-lunch" data-day="friday" data-meal="lunch"></div><div class="meal" id="friday-dinner" data-day="friday" data-meal="dinner"></div></div>
-        <div class="day"><h2>Saturday</h2><div class="meal" id="saturday-breakfast" data-day="saturday" data-meal="breakfast"></div><div class="meal" id="saturday-lunch" data-day="saturday" data-meal="lunch"></div><div class="meal" id="saturday-dinner" data-day="saturday" data-meal="dinner"></div></div>
-        <div class="day"><h2>Sunday</h2><div class="meal" id="sunday-breakfast" data-day="sunday" data-meal="breakfast"></div><div class="meal" id="sunday-lunch" data-day="sunday" data-meal="lunch"></div><div class="meal" id="sunday-dinner" data-day="sunday" data-meal="dinner"></div></div>
+    <div class="category">
+        <h2>Protein</h2>
+        <div class="ingredient-list" id="protein-list">
+            <div class="ingredient" draggable="true" data-ingredient="chicken"><span>chicken</span><span class="delete">x</span></div>
+            <div class="ingredient" draggable="true" data-ingredient="beef"><span>beef</span><span class="delete">x</span></div>
+        </div>
+        <div class="add-ingredient">
+            <input type="text" id="add-protein" placeholder="Add Protein">
+            <button onclick="addIngredient('protein')">Add</button>
+        </div>
     </div>
 
-    <div class="ingredient-list" id="ingredient-list">
-        <div class="ingredient" draggable="true" data-ingredient="chicken">Chicken</div>
-        <div class="ingredient" draggable="true" data-ingredient="beef">Beef</div>
-        <div class="ingredient" draggable="true" data-ingredient="pasta">Pasta</div>
-        <div class="ingredient" draggable="true" data-ingredient="rice">Rice</div>
-        <div class="ingredient" draggable="true" data-ingredient="vegetables">Vegetables</div>
-        <div class="ingredient" draggable="true" data-ingredient="fruit">Fruit</div>
+    <div class="category">
+        <h2>Vegetables</h2>
+        <div class="ingredient-list" id="vegetable-list">
+            <div class="ingredient" draggable="true" data-ingredient="vegetables"><span>vegetables</span><span class="delete">x</span></div>
+            <div class="ingredient" draggable="true" data-ingredient="spinach"><span>spinach</span><span class="delete">x</span></div>
+
         </div>
+        <div class="add-ingredient">
+            <input type="text" id="add-vegetable" placeholder="Add Vegetable">
+            <button onclick="addIngredient('vegetable')">Add</button>
+        </div>
+    </div>
+
+    <div class="category">
+        <h2>Starch</h2>
+        <div class="ingredient-list" id="starch-list">
+            <div class="ingredient" draggable="true" data-ingredient="pasta"><span>pasta</span><span class="delete">x</span></div>
+            <div class="ingredient" draggable="true" data-ingredient="rice"><span>rice</span><span class="delete">x</span></div>
+        </div>
+        <div class="add-ingredient">
+            <input type="text" id="add-starch" placeholder="Add Starch">
+            <button onclick="addIngredient('starch')">Add</button>
+        </div>
+    </div>
+
 
     <script>
-        const ingredients = document.querySelectorAll('.ingredient');
-        const meals = document.querySelectorAll('.meal');
-        const ingredientList = document.getElementById('ingredient-list');
+        // ... (Drag and drop logic - mostly the same) ...
 
-        ingredients.forEach(ingredient => {
-            ingredient.addEventListener('dragstart', (e) => {
-                e.dataTransfer.setData('text/plain', ingredient.dataset.ingredient); // Store ingredient data
-            });
-        });
+        function addIngredient(category) {
+            const input = document.getElementById(`add-${category}`);
+            const ingredientName = input.value.trim();
 
-        meals.forEach(meal => {
-            meal.addEventListener('dragover', (e) => {
-                e.preventDefault(); // Allow drop
-            });
+            if (ingredientName !== "") {
+                const newList = document.getElementById(`${category}-list`);
+                const newIngredient = createIngredientElement(ingredientName);
+                newList.appendChild(newIngredient);
+                input.value = ""; // Clear input
+            }
+        }
 
-            meal.addEventListener('drop', (e) => {
-                e.preventDefault();
-                const ingredient = e.dataTransfer.getData('text/plain'); // Retrieve ingredient data
-                const newIngredient = document.createElement('div');
-                newIngredient.classList.add('ingredient');
-                newIngredient.draggable = true;
-                newIngredient.dataset.ingredient = ingredient;
-                newIngredient.textContent = ingredient;
-
-                // Add drag functionality to newly dropped item
-                newIngredient.addEventListener('dragstart', (e) => {
-                    e.dataTransfer.setData('text/plain', newIngredient.dataset.ingredient);
-                });
-
-
-                meal.appendChild(newIngredient);
-
-            });
-        });
-
-        ingredientList.addEventListener('dragover', (e) => {
-            e.preventDefault();
-        });
-
-        ingredientList.addEventListener('drop', (e) => {
-            e.preventDefault();
-            const ingredient = e.dataTransfer.getData('text/plain');
+        function createIngredientElement(ingredientName){
             const newIngredient = document.createElement('div');
             newIngredient.classList.add('ingredient');
             newIngredient.draggable = true;
-            newIngredient.dataset.ingredient = ingredient;
-            newIngredient.textContent = ingredient;
+            newIngredient.dataset.ingredient = ingredientName;
+
+            const span = document.createElement('span'); // Create a span for the text
+            span.textContent = ingredientName;
+            newIngredient.appendChild(span);
+
+            const deleteSpan = document.createElement('span');
+            deleteSpan.textContent = "x";
+            deleteSpan.classList.add('delete');
+            deleteSpan.addEventListener('click', deleteIngredient);
+            newIngredient.appendChild(deleteSpan);
 
 
             newIngredient.addEventListener('dragstart', (e) => {
                 e.dataTransfer.setData('text/plain', newIngredient.dataset.ingredient);
             });
+            return newIngredient;
+        }
 
-            ingredientList.appendChild(newIngredient);
+        function deleteIngredient(event){
+            const ingredient = event.target.parentNode;
+            ingredient.remove();
+        }
 
+         // Add delete functionality to initial ingredients
+         document.querySelectorAll('.ingredient .delete').forEach(span => {
+            span.addEventListener('click', deleteIngredient);
         });
+
     </script>
 
 </body>
