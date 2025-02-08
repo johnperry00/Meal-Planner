@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Weekly Meal Planner</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .meal-planner {
+            display: flex;
+            border: 1px solid #ddd;
+        }
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            flex-grow: 1;
+        }
+        .day-column {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        .meal-slot {
+            border: 1px dashed #aaa;
+            min-height: 50px;
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .ingredient-lists {
+            width: 250px;
+            padding: 10px;
+            background-color: #f0f0f0;
+        }
+        .ingredient-list {
+            margin-bottom: 20px;
+        }
+        .ingredient {
+            background-color: #e0e0e0;
+            padding: 5px;
+            margin: 5px 0;
+            cursor: move;
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .ingredient.dragging {
+            opacity: 0.5;
+        }
+        .add-ingredient-form {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .add-ingredient-form input {
+            flex-grow: 1;
+            margin-right: 5px;
+        }
+        .delete-ingredient {
+            background: none;
+            border: none;
+            color: red;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        const App = () => {
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            const [proteins, setProteins] = useState([
+                'Chicken', 'Beef', 'Fish', 'Tofu', 'Eggs', 'Pork', 'Shrimp'
+            ]);
+            const [vegetables, setVegetables] = useState([
+                'Broccoli', 'Spinach', 'Carrots', 'Asparagus', 'Bell Peppers', 'Cauliflower', 'Zucchini'
+            ]);
+            const [starches, setStarches] = useState([
+                'Rice', 'Potatoes', 'Quinoa', 'Pasta', 'Sweet Potato', 'Bread', 'Couscous'
+            ]);
+            const [mealPlan, setMealPlan] = useState(
+                days.reduce((acc, day) => ({
+                    ...acc,
+                    [day]: {
+                        protein: null,
+                        vegetable: null,
+                        starch: null
+                    }
+                }), {})
+            );
+
+            const handleDragStart = (e, item, type) => {
+                e.dataTransfer.setData('text/plain', JSON.stringify({ item, type }));
+                e.target.classList.add('dragging');
+            };
+
+            const handleDragEnd = (e) => {
+                e.target.classList.remove('dragging');
+            };
+
+            const handleDragOver = (e) => {
+                e.preventDefault();
+            };
+
+            const handleDrop = (e, day, slot) => {
+                e.preventDefault();
+                const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                
+                setMealPlan(prev => ({
+                    ...prev,
+                    [day]: {
+                        ...prev[day],
+                        [slot]: data.item
+                    }
+                }));
+            };
+
+            const IngredientList = ({ ingredients, type, onAdd, onDelete }) => {
+                const [newIngredient, setNewIngredient] = useState('');
+
+                const handleSubmit = (e) => {
+                    e.preventDefault();
+                    if (newIngredient.trim() && !ingredients.includes(newIngredient.trim())) {
+                        onAdd(newIngredient.trim());
+                        setNewIngredient('');
+                    }
+                };
+
+                return (
+                    <div className="ingredient-list">
+                        <h3>{type.charAt(0).toUpperCase() + type.slice(1)}s</h3>
+                        <form onSubmit={handleSubmit} className="add-ingredient-form">
+                            <input 
+                                type="text" 
+                                value={newIngredient}
+                                onChange={(e) => setNewIngredient(e.target.value)}
+                                placeholder={`Add ${type}`}
+                            />
+                            <button type="submit">+</button>
+                        </form>
+                        {ingredients.map((item, index) => (
+                            <div 
+                                key={index} 
+                                className="ingredient"
+                                draggable
+                                onDragStart={(e) => handleDragStart(e, item, type)}
+                                onDragEnd={handleDragEnd}
+                            >
+                                <span>{item}</span>
+                                <button 
+                                    className="delete-ingredient"
+                                    onClick={() => onDelete(item)}
+                                >
+                                    ✖
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                );
+            };
+
+            const handleAddIngredient = (type, ingredient) => {
+                switch(type) {
+                    case 'protein':
+                        setProteins(prev => [...prev, ingredient]);
+                        break;
+                    case 'vegetable':
+                        setVegetables(prev => [...prev, ingredient]);
+                        break;
+                    case 'starch':
+                        setStarches(prev => [...prev, ingredient]);
+                        break;
+                }
+            };
+
+            const handleDeleteIngredient = (type, ingredient) => {
+                // First, remove the ingredient from the meal plan
+                const updatedMealPlan = { ...mealPlan };
+                days.forEach(day => {
+                    Object.keys(updatedMealPlan[day]).forEach(slot => {
+                        if (updatedMealPlan[day][slot] === ingredient) {
+                            updatedMealPlan[day][slot] = null;
+                        }
+                    });
+                });
+                setMealPlan(updatedMealPlan);
+
+                // Then remove from the ingredients list
+                switch(type) {
+                    case 'protein':
+                        setProteins(prev => prev.filter(p => p !== ingredient));
+                        break;
+                    case 'vegetable':
+                        setVegetables(prev => prev.filter(v => v !== ingredient));
+                        break;
+                    case 'starch':
+                        setStarches(prev => prev.filter(s => s !== ingredient));
+                        break;
+                }
+            };
+
+            return (
+                <div>
+                    <h1>Weekly Meal Planner</h1>
+                    <div className="meal-planner">
+                        <div className="days-grid">
+                            {days.map(day => (
+                                <div key={day} className="day-column">
+                                    <h2>{day}</h2>
+                                    <div 
+                                        className="meal-slot protein-slot" 
+                                        onDragOver={handleDragOver}
+                                        onDrop={(e) => handleDrop(e, day, 'protein')}
+                                    >
+                                        {mealPlan[day].protein || 'Protein'}
+                                    </div>
+                                    <div 
+                                        className="meal-slot vegetable-slot" 
+                                        onDragOver={handleDragOver}
+                                        onDrop={(e) => handleDrop(e, day, 'vegetable')}
+                                    >
+                                        {mealPlan[day].vegetable || 'Vegetable'}
+                                    </div>
+                                    <div 
+                                        className="meal-slot starch-slot" 
+                                        onDragOver={handleDragOver}
+                                        onDrop={(e) => handleDrop(e, day, 'starch')}
+                                    >
+                                        {mealPlan[day].starch || 'Starch'}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="ingredient-lists">
+                            <IngredientList 
+                                ingredients={proteins}
+                                type="protein"
+                                onAdd={(ingredient) => handleAddIngredient('protein', ingredient)}
+                                onDelete={(ingredient) => handleDeleteIngredient('protein', ingredient)}
+                            />
+                            <IngredientList 
+                                ingredients={vegetables}
+                                type="vegetable"
+                                onAdd={(ingredient) => handleAddIngredient('vegetable', ingredient)}
+                                onDelete={(ingredient) => handleDeleteIngredient('vegetable', ingredient)}
+                            />
+                            <IngredientList 
+                                ingredients={starches}
+                                type="starch"
+                                onAdd={(ingredient) => handleAddIngredient('starch', ingredient)}
+                                onDelete={(ingredient) => handleDeleteIngredient('starch', ingredient)}
+                            />
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
