@@ -78,6 +78,7 @@
             justify-content: space-between;
             align-items: center;
             position: relative;
+            cursor: move;
         }
         .ingredient-count {
             background-color: #ddd;
@@ -88,6 +89,9 @@
             align-items: center;
             justify-content: center;
             font-size: 12px;
+            position: absolute;
+            top: -5px;
+            right: -5px;
         }
         .add-ingredient-form {
             display: flex;
@@ -152,9 +156,6 @@
             </div>
             <div class="ingredient-section" id="ingredient-section">
                 <!-- Ingredient lists will be populated dynamically -->
-            </div>
-            <div class="saved-plans-list" id="saved-plans-list">
-                <!-- Saved plans will be listed here -->
             </div>
         </div>
     </div>
@@ -245,27 +246,16 @@
             loadSavedPlans() {
                 const savedPlans = JSON.parse(localStorage.getItem('mealPlannerSaves') || '[]');
                 const savedPlanSelect = document.getElementById('saved-plans');
-                const savedPlansList = document.getElementById('saved-plans-list');
 
                 // Clear existing options
                 savedPlanSelect.innerHTML = '<option value="">Select a saved plan</option>';
-                savedPlansList.innerHTML = '';
 
-                // Populate select and list
+                // Populate select
                 savedPlans.forEach(plan => {
-                    // Add to select dropdown
                     const option = document.createElement('option');
                     option.value = plan.name;
                     option.textContent = plan.name;
                     savedPlanSelect.appendChild(option);
-
-                    // Add to plans list
-                    const planItem = document.createElement('div');
-                    planItem.className = 'saved-plan-item';
-                    planItem.innerHTML = `
-                        <span>${plan.name}</span>
-                    `;
-                    savedPlansList.appendChild(planItem);
                 });
             }
 
@@ -323,25 +313,123 @@
                 alert(`Meal plan "${planName}" deleted successfully!`);
             }
 
-            // ... (rest of the previous implementation remains the same)
-            
-            // The following methods from the previous implementation:
-            // renderDays()
-            // renderMealItems()
-            // renderIngredients()
-            // countIngredientOccurrences()
-            // handleDragStart()
-            // handleDragOver()
-            // handleDrop()
-            // handleAddIngredient()
-            // handleDeleteIngredient()
-            // handleRemoveMealItem()
-        }
+            renderDays() {
+                const daysGrid = document.getElementById('days-grid');
+                daysGrid.innerHTML = '';
+                this.days.forEach(day => {
+                    const dayColumn = document.createElement('div');
+                    dayColumn.className = 'day-column';
+                    dayColumn.innerHTML = `
+                        <h2>${day}</h2>
+                        <div class="meal-slot protein-slot" data-day="${day}" data-type="protein">
+                            ${this.renderMealItems(day, 'protein')}
+                        </div>
+                        <div class="meal-slot vegetable-slot" data-day="${day}" data-type="vegetable">
+                            ${this.renderMealItems(day, 'vegetable')}
+                        </div>
+                        <div class="meal-slot starch-slot" data-day="${day}" data-type="starch">
+                            ${this.renderMealItems(day, 'starch')}
+                        </div>
+                    `;
+                    
+                    // Add event listeners for removing meal items
+                    dayColumn.addEventListener('click', this.handleRemoveMealItem.bind(this));
+                    
+                    daysGrid.appendChild(dayColumn);
+                });
+            }
 
-        // Initialize the app when the page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            new MealPlanner();
-        });
-    </script>
-</body>
-</html>
+            renderMealItems(day, type) {
+                const items = this.mealPlan[day][type];
+                return items.length > 0 
+                    ? items.map(item => 
+                        `<div class="meal-item" data-day="${day}" data-type="${type}" data-item="${item}">
+                            ${item}
+                            <button class="meal-item-remove">✖</button>
+                        </div>`
+                    ).join('')
+                    : `${type.charAt(0).toUpperCase() + type.slice(1)}`;
+            }
+
+            renderIngredients() {
+                const ingredientSection = document.getElementById('ingredient-section');
+                ingredientSection.innerHTML = '';
+
+                Object.entries(this.ingredients).forEach(([type, items]) => {
+                    const ingredientList = document.createElement('div');
+                    ingredientList.className = 'ingredient-list';
+                    
+                    // Add ingredient form
+                    const addForm = document.createElement('form');
+                    addForm.className = 'add-ingredient-form';
+                    addForm.innerHTML = `
+                        <input type="text" placeholder="Add new ${type}" data-type="${type}">
+                        <button type="submit">Add</button>
+                    `;
+                    addForm.addEventListener('submit', this.handleAddIngredient.bind(this));
+                    ingredientList.appendChild(addForm);
+
+                    // Ingredient list title
+                    const title = document.createElement('h3');
+                    title.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+                    ingredientList.appendChild(title);
+
+                    // Render ingredients
+                    items.forEach(item => {
+                        const ingredientEl = document.createElement('div');
+                        ingredientEl.className = 'ingredient';
+                        ingredientEl.setAttribute('draggable', true);
+                        ingredientEl.setAttribute('data-type', type);
+                        ingredientEl.setAttribute('data-item', item);
+
+                        // Count occurrences in meal plan
+                        const count = this.countIngredientOccurrences(type, item);
+
+                        ingredientEl.innerHTML = `
+                            <span>${item}</span>
+                            ${count > 0 ? `<div class="ingredient-count">${count}</div>` : ''}
+                            <button class="delete-ingredient-btn" data-type="${type}" data-item="${item}">✖</button>
+                        `;
+
+                        // Drag and drop event listeners
+                        ingredientEl.addEventListener('dragstart', this.handleDragStart.bind(this));
+                        
+                        // Delete ingredient event listener
+                        const deleteBtn = ingredientEl.querySelector('.delete-ingredient-btn');
+                        deleteBtn.addEventListener('click', this.handleDeleteIngredient.bind(this));
+
+                        ingredientList.appendChild(ingredientEl);
+                    });
+
+                    ingredientSection.appendChild(ingredientList);
+                });
+
+                // Add event listeners to meal slots
+                document.querySelectorAll('.meal-slot').forEach(slot => {
+                    slot.addEventListener('dragover', this.handleDragOver.bind(this));
+                    slot.addEventListener('drop', this.handleDrop.bind(this));
+                });
+            }
+
+            countIngredientOccurrences(type, item) {
+                return Object.values(this.mealPlan).reduce((total, day) => 
+                    total + day[type].filter(i => i === item).length, 0
+                );
+            }
+
+            handleDragStart(e) {
+                e.dataTransfer.setData('text/plain', JSON.stringify({
+                    type: e.target.getAttribute('data-type'),
+                    item: e.target.getAttribute('data-item')
+                }));
+            }
+
+            handleDragOver(e) {
+                e.preventDefault();
+            }
+
+            handleDrop(e) {
+                e.preventDefault();
+                const slot = e.target.closest('.meal-slot');
+                const slotType = slot.getAttribute('data-type');
+                const slotDay = slot.getAttribute('data-day');
