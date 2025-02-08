@@ -15,15 +15,6 @@
             display: flex;
             flex-direction: column;
         }
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-        .save-form, .load-form {
-            display: flex;
-            gap: 10px;
-        }
         .days-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -33,6 +24,15 @@
             border: 1px solid #ddd;
             padding: 10px;
             text-align: center;
+        }
+        .day-description {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            min-height: 50px;
         }
         .meal-slot {
             border: 1px dashed #aaa;
@@ -109,46 +109,15 @@
             cursor: pointer;
             margin-left: 5px;
         }
-        .saved-plans-list {
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            padding: 10px;
-            margin-top: 10px;
-        }
-        .saved-plan-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 5px;
-            border-bottom: 1px solid #eee;
-        }
         @media (max-width: 768px) {
             .ingredient-section {
                 grid-template-columns: 1fr;
-            }
-            .controls {
-                flex-direction: column;
-                gap: 10px;
             }
         }
     </style>
 </head>
 <body>
     <div id="app">
-        <div class="controls">
-            <div class="save-form">
-                <input type="text" id="save-name" placeholder="Enter plan name">
-                <button id="save-btn">Save Plan</button>
-            </div>
-            <div class="load-form">
-                <select id="saved-plans">
-                    <option value="">Select a saved plan</option>
-                </select>
-                <button id="load-btn">Load Plan</button>
-                <button id="delete-btn">Delete Plan</button>
-            </div>
-        </div>
         <h1>Weekly Meal Planner</h1>
         <div class="meal-planner">
             <div class="days-grid" id="days-grid">
@@ -161,21 +130,31 @@
     </div>
 
     <script>
-        // Meal Planner Application
         class MealPlanner {
             constructor() {
-                this.days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                this.days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
                 this.ingredients = {
                     protein: ['Chicken', 'Beef', 'Fish', 'Tofu', 'Eggs', 'Pork', 'Shrimp'],
                     vegetable: ['Broccoli', 'Spinach', 'Carrots', 'Asparagus', 'Bell Peppers', 'Cauliflower', 'Zucchini'],
                     starch: ['Rice', 'Potatoes', 'Quinoa', 'Pasta', 'Sweet Potato', 'Bread', 'Couscous']
                 };
                 this.mealPlan = {};
+                this.dayDescriptions = {};
+                
+                // Bind methods to ensure correct context
+                this.renderDays = this.renderDays.bind(this);
+                this.renderIngredients = this.renderIngredients.bind(this);
+                this.handleDescriptionChange = this.handleDescriptionChange.bind(this);
+                this.handleRemoveMealItem = this.handleRemoveMealItem.bind(this);
+                this.handleDragStart = this.handleDragStart.bind(this);
+                this.handleDragOver = this.handleDragOver.bind(this);
+                this.handleDrop = this.handleDrop.bind(this);
+                this.handleAddIngredient = this.handleAddIngredient.bind(this);
+                this.handleDeleteIngredient = this.handleDeleteIngredient.bind(this);
+                
                 this.initializeMealPlan();
                 this.renderDays();
                 this.renderIngredients();
-                this.setupEventListeners();
-                this.loadSavedPlans();
             }
 
             initializeMealPlan() {
@@ -185,132 +164,8 @@
                         vegetable: [],
                         starch: []
                     };
+                    this.dayDescriptions[day] = '';
                 });
-            }
-
-            setupEventListeners() {
-                // Save button
-                document.getElementById('save-btn').addEventListener('click', () => {
-                    this.saveMealPlan();
-                });
-
-                // Load button
-                document.getElementById('load-btn').addEventListener('click', () => {
-                    this.loadSelectedPlan();
-                });
-
-                // Delete button
-                document.getElementById('delete-btn').addEventListener('click', () => {
-                    this.deleteSelectedPlan();
-                });
-            }
-
-            saveMealPlan() {
-                const planName = document.getElementById('save-name').value.trim();
-                if (!planName) {
-                    alert('Please enter a name for your meal plan');
-                    return;
-                }
-
-                // Create a save object with ingredients and meal plan
-                const saveData = {
-                    name: planName,
-                    ingredients: this.ingredients,
-                    mealPlan: this.mealPlan
-                };
-
-                // Get existing saved plans
-                const savedPlans = JSON.parse(localStorage.getItem('mealPlannerSaves') || '[]');
-
-                // Check if plan with this name already exists
-                const existingPlanIndex = savedPlans.findIndex(plan => plan.name === planName);
-                if (existingPlanIndex !== -1) {
-                    // Replace existing plan
-                    savedPlans[existingPlanIndex] = saveData;
-                } else {
-                    // Add new plan
-                    savedPlans.push(saveData);
-                }
-
-                // Save to localStorage
-                localStorage.setItem('mealPlannerSaves', JSON.stringify(savedPlans));
-
-                // Reload saved plans list
-                this.loadSavedPlans();
-
-                // Clear save input
-                document.getElementById('save-name').value = '';
-                alert(`Meal plan "${planName}" saved successfully!`);
-            }
-
-            loadSavedPlans() {
-                const savedPlans = JSON.parse(localStorage.getItem('mealPlannerSaves') || '[]');
-                const savedPlanSelect = document.getElementById('saved-plans');
-
-                // Clear existing options
-                savedPlanSelect.innerHTML = '<option value="">Select a saved plan</option>';
-
-                // Populate select
-                savedPlans.forEach(plan => {
-                    const option = document.createElement('option');
-                    option.value = plan.name;
-                    option.textContent = plan.name;
-                    savedPlanSelect.appendChild(option);
-                });
-            }
-
-            loadSelectedPlan() {
-                const savedPlanSelect = document.getElementById('saved-plans');
-                const planName = savedPlanSelect.value;
-
-                if (!planName) {
-                    alert('Please select a meal plan to load');
-                    return;
-                }
-
-                // Get saved plans
-                const savedPlans = JSON.parse(localStorage.getItem('mealPlannerSaves') || '[]');
-
-                // Find selected plan
-                const selectedPlan = savedPlans.find(plan => plan.name === planName);
-
-                if (selectedPlan) {
-                    // Restore ingredients
-                    this.ingredients = selectedPlan.ingredients;
-
-                    // Restore meal plan
-                    this.mealPlan = selectedPlan.mealPlan;
-
-                    // Re-render everything
-                    this.renderDays();
-                    this.renderIngredients();
-
-                    alert(`Meal plan "${planName}" loaded successfully!`);
-                }
-            }
-
-            deleteSelectedPlan() {
-                const savedPlanSelect = document.getElementById('saved-plans');
-                const planName = savedPlanSelect.value;
-
-                if (!planName) {
-                    alert('Please select a meal plan to delete');
-                    return;
-                }
-
-                // Get saved plans
-                let savedPlans = JSON.parse(localStorage.getItem('mealPlannerSaves') || '[]');
-
-                // Remove the selected plan
-                savedPlans = savedPlans.filter(plan => plan.name !== planName);
-
-                // Save updated plans
-                localStorage.setItem('mealPlannerSaves', JSON.stringify(savedPlans));
-
-                // Reload saved plans list
-                this.loadSavedPlans();
-
-                alert(`Meal plan "${planName}" deleted successfully!`);
             }
 
             renderDays() {
@@ -321,6 +176,7 @@
                     dayColumn.className = 'day-column';
                     dayColumn.innerHTML = `
                         <h2>${day}</h2>
+                        <textarea class="day-description" data-day="${day}" placeholder="Day notes...">${this.dayDescriptions[day]}</textarea>
                         <div class="meal-slot protein-slot" data-day="${day}" data-type="protein">
                             ${this.renderMealItems(day, 'protein')}
                         </div>
@@ -332,11 +188,18 @@
                         </div>
                     `;
                     
-                    // Add event listeners for removing meal items
-                    dayColumn.addEventListener('click', this.handleRemoveMealItem.bind(this));
+                    // Add event listener for description changes
+                    const descriptionTextarea = dayColumn.querySelector('.day-description');
+                    descriptionTextarea.addEventListener('input', this.handleDescriptionChange);
                     
+                    dayColumn.addEventListener('click', this.handleRemoveMealItem);
                     daysGrid.appendChild(dayColumn);
                 });
+            }
+
+            handleDescriptionChange(e) {
+                const day = e.target.getAttribute('data-day');
+                this.dayDescriptions[day] = e.target.value;
             }
 
             renderMealItems(day, type) {
@@ -359,22 +222,19 @@
                     const ingredientList = document.createElement('div');
                     ingredientList.className = 'ingredient-list';
                     
-                    // Add ingredient form
                     const addForm = document.createElement('form');
                     addForm.className = 'add-ingredient-form';
                     addForm.innerHTML = `
                         <input type="text" placeholder="Add new ${type}" data-type="${type}">
                         <button type="submit">Add</button>
                     `;
-                    addForm.addEventListener('submit', this.handleAddIngredient.bind(this));
+                    addForm.addEventListener('submit', this.handleAddIngredient);
                     ingredientList.appendChild(addForm);
 
-                    // Ingredient list title
                     const title = document.createElement('h3');
                     title.textContent = type.charAt(0).toUpperCase() + type.slice(1);
                     ingredientList.appendChild(title);
 
-                    // Render ingredients
                     items.forEach(item => {
                         const ingredientEl = document.createElement('div');
                         ingredientEl.className = 'ingredient';
@@ -382,7 +242,6 @@
                         ingredientEl.setAttribute('data-type', type);
                         ingredientEl.setAttribute('data-item', item);
 
-                        // Count occurrences in meal plan
                         const count = this.countIngredientOccurrences(type, item);
 
                         ingredientEl.innerHTML = `
@@ -391,12 +250,10 @@
                             <button class="delete-ingredient-btn" data-type="${type}" data-item="${item}">✖</button>
                         `;
 
-                        // Drag and drop event listeners
-                        ingredientEl.addEventListener('dragstart', this.handleDragStart.bind(this));
+                        ingredientEl.addEventListener('dragstart', this.handleDragStart);
                         
-                        // Delete ingredient event listener
                         const deleteBtn = ingredientEl.querySelector('.delete-ingredient-btn');
-                        deleteBtn.addEventListener('click', this.handleDeleteIngredient.bind(this));
+                        deleteBtn.addEventListener('click', this.handleDeleteIngredient);
 
                         ingredientList.appendChild(ingredientEl);
                     });
@@ -404,10 +261,9 @@
                     ingredientSection.appendChild(ingredientList);
                 });
 
-                // Add event listeners to meal slots
                 document.querySelectorAll('.meal-slot').forEach(slot => {
-                    slot.addEventListener('dragover', this.handleDragOver.bind(this));
-                    slot.addEventListener('drop', this.handleDrop.bind(this));
+                    slot.addEventListener('dragover', this.handleDragOver);
+                    slot.addEventListener('drop', this.handleDrop);
                 });
             }
 
@@ -433,3 +289,67 @@
                 const slot = e.target.closest('.meal-slot');
                 const slotType = slot.getAttribute('data-type');
                 const slotDay = slot.getAttribute('data-day');
+                
+                const dragData = JSON.parse(e.dataTransfer.getData('text/plain'));
+
+                if (dragData.type === slotType) {
+                    const dayMeals = this.mealPlan[slotDay][slotType];
+                    if (!dayMeals.includes(dragData.item)) {
+                        dayMeals.push(dragData.item);
+                        this.renderDays();
+                        this.renderIngredients();
+                    }
+                }
+            }
+
+            handleAddIngredient(e) {
+                e.preventDefault();
+                const input = e.target.querySelector('input');
+                const type = input.getAttribute('data-type');
+                const newItem = input.value.trim();
+
+                if (newItem && !this.ingredients[type].includes(newItem)) {
+                    this.ingredients[type].push(newItem);
+                    input.value = '';
+                    this.renderIngredients();
+                }
+            }
+
+            handleDeleteIngredient(e) {
+                const type = e.target.getAttribute('data-type');
+                const item = e.target.getAttribute('data-item');
+
+                const occurrences = this.countIngredientOccurrences(type, item);
+                if (occurrences > 0) {
+                    alert(`Cannot delete ${item}. It is currently used in the meal plan.`);
+                    return;
+                }
+
+                this.ingredients[type] = this.ingredients[type].filter(i => i !== item);
+                this.renderIngredients();
+            }
+
+            handleRemoveMealItem(e) {
+                if (e.target.classList.contains('meal-item-remove')) {
+                    const mealItem = e.target.closest('.meal-item');
+                    const day = mealItem.getAttribute('data-day');
+                    const type = mealItem.getAttribute('data-type');
+                    const item = mealItem.getAttribute('data-item');
+
+                    // Remove the item from the meal plan
+                    this.mealPlan[day][type] = this.mealPlan[day][type].filter(i => i !== item);
+
+                    // Update display and counts
+                    this.renderDays();
+                    this.renderIngredients();
+                }
+            }
+        }
+
+        // Initialize the app when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new MealPlanner();
+        });
+    </script>
+</body>
+</html>
