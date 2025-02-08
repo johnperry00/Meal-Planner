@@ -12,16 +12,16 @@
             align-items: center;
         }
 
-        .container {
+        .container { /* New container for layout */
             display: grid;
-            grid-template-columns: repeat(7, 1fr) 3fr;
+            grid-template-columns: repeat(7, 1fr) 3fr; /* 7 days + 3 ingredient columns */
             gap: 10px;
-            width: 90%;
+            width: 90%; /* Adjust as needed */
             margin-top: 20px;
         }
 
         .menu-container {
-            grid-column: 1 / 8;
+            grid-column: 1 / 8; /* Span all 7 day columns */
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 10px;
@@ -35,7 +35,7 @@
 
         /* ... (Rest of the CSS styles - meal, ingredient, category) ... */
         .ingredient-category-column {
-            grid-column: 8 / 11;
+            grid-column: 8 / 11; /* Place ingredient categories in the last 3 columns */
             padding: 10px;
         }
 
@@ -52,82 +52,70 @@
             padding: 5px 10px;
             border-radius: 5px;
             cursor: move;
-            margin-right: 5px;
-            display: inline-block;
+            margin-right: 5px; /* Add some space between ingredients */
+            display: inline-block; /* Prevent ingredients from stacking vertically */
         }
         .ingredient span {
-            cursor: default;
+            cursor: default; /* Make the 'x' not draggable */
             margin-left: 5px;
             color: gray;
         }
         .ingredient input[type="text"] {
             border: none;
             background: transparent;
-            width: auto;
+            width: auto; /* Adjust as needed */
             outline: none;
         }
         .add-ingredient {
             margin-top: 10px;
         }
 
-
-        /* Media Queries for Responsiveness */
-        @media (max-width: 900px) { /* Adjust breakpoint as needed */
-            .container {
-                grid-template-columns: 1fr; /* Stack columns */
-                grid-template-areas:
-                    "menu"
-                    "ingredients"; /* Define grid areas */
-            }
-
-            .menu-container {
-                grid-area: menu; /* Assign grid area */
-                grid-template-columns: repeat(3, 1fr); /* Reduce columns for smaller screens */
-            }
-            .day {
-                text-align: left; /* Align text to the left */
-            }
-            .day h2 {
-                text-align: center; /* Center day names */
-            }
-
-            .ingredient-category-column {
-                grid-area: ingredients; /* Assign grid area */
-                grid-column: 1;
-                display: flex;
-                flex-direction: column; /* Stack categories vertically */
-            }
-            .category {
-                margin-bottom: 10px; /* Add some space between categories */
-            }
-
-            .ingredient-list {
-                display: flex; /* Allow wrapping of ingredients */
-                flex-wrap: wrap;
-            }
-
-            .ingredient {
-                margin-bottom: 5px; /* Add margin between ingredients */
-            }
-
-        }
-
-        @media (max-width: 600px) {
-           .menu-container {
-                grid-template-columns: 1fr; /* Single column on very small screens */
-            }
-        }
     </style>
 </head>
 <body>
     <h1>Weekly Menu Planner</h1>
 
-    <div class="container">
-        <div class="menu-container">
+    <div class="container">  <div class="menu-container">
+            <div class="day"><h2>Monday</h2><div class="meal" id="monday-breakfast" data-day="monday" data-meal="breakfast"></div><div class="meal" id="monday-lunch" data-day="monday" data-meal="lunch"></div><div class="meal" id="monday-dinner" data-day="monday" data-meal="dinner"></div></div>
+            <div class="day"><h2>Tuesday</h2><div class="meal" id="tuesday-breakfast" data-day="tuesday" data-meal="breakfast"></div><div class="meal" id="tuesday-lunch" data-day="tuesday" data-meal="lunch"></div><div class="meal" id="tuesday-dinner" data-day="tuesday" data-meal="dinner"></div></div>
+            <div class="day"><h2>Wednesday</h2><div class="meal" id="wednesday-breakfast" data-day="wednesday" data-meal="breakfast"></div><div class="meal" id="wednesday-lunch" data-day="wednesday" data-meal="lunch"></div><div class="meal" id="wednesday-dinner" data-day="wednesday" data-meal="dinner"></div></div>
+            <div class="day"><h2>Thursday</h2><div class="meal" id="thursday-breakfast" data-day="thursday" data-meal="breakfast"></div><div class="meal" id="thursday-lunch" data-day="thursday" data-meal="lunch"></div><div class="meal" id="thursday-dinner" data-day="thursday" data-meal="dinner"></div></div>
+            <div class="day"><h2>Friday</h2><div class="meal" id="friday-breakfast" data-day="friday" data-meal="breakfast"></div><div class="meal" id="friday-lunch" data-day="friday" data-meal="lunch"></div><div class="meal" id="friday-dinner" data-day="friday" data-meal="dinner"></div></div>
+            <div class="day"><h2>Saturday</h2><div class="meal" id="saturday-breakfast" data-day="saturday" data-meal="breakfast"></div><div class="meal" id="saturday-lunch" data-day="saturday" data-meal="lunch"></div><div class="meal" id="saturday-dinner" data-day="saturday" data-meal="dinner"></div></div>
+            <div class="day"><h2>Sunday</h2><div class="meal" id="sunday-breakfast" data-day="sunday" data-meal="breakfast"></div><div class="meal" id="sunday-lunch" data-day="sunday" data-meal="lunch"></div><div class="meal" id="sunday-dinner" data-day="sunday" data-meal="dinner"></div></div>
+
+        </div>
+
+        <div class="ingredient-category-column">  <div class="category">
+                <h2>Protein</h2>
+                <div class="ingredient-list" id="protein-list">
+                    </div>
+                <div class="add-ingredient">
+                    <input type="text" id="add-protein" placeholder="Add Protein">
+                    <button onclick="addIngredient('protein')">Add</button>
+                </div>
             </div>
 
-        <div class="ingredient-category-column">
+            <div class="category">
+                <h2>Vegetables</h2>
+                <div class="ingredient-list" id="vegetable-list">
+                    </div>
+                <div class="add-ingredient">
+                    <input type="text" id="add-vegetable" placeholder="Add Vegetable">
+                    <button onclick="addIngredient('vegetable')">Add</button>
+                </div>
             </div>
+
+            <div class="category">
+                <h2>Starch</h2>
+                <div class="ingredient-list" id="starch-list">
+                    </div>
+                <div class="add-ingredient">
+                    <input type="text" id="add-starch" placeholder="Add Starch">
+                    <button onclick="addIngredient('starch')">Add</button>
+                </div>
+            </div>
+        </div>
     </div>
 
 
