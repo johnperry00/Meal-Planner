@@ -12,6 +12,7 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            touch-action: manipulation;
         }
         body {
             font-family: Arial, sans-serif;
@@ -57,16 +58,13 @@
             background-color: #e6f2ff;
         }
         .ingredient-lists {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
             padding: 10px;
             background-color: #f0f0f0;
         }
         .ingredient-list {
-            width: 100%;
-            max-width: 300px;
-            margin: 10px;
             background-color: white;
             border-radius: 8px;
             padding: 10px;
@@ -76,15 +74,13 @@
             background-color: #e0e0e0;
             padding: 10px;
             margin: 5px 0;
-            cursor: move;
             text-align: center;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-radius: 4px;
-        }
-        .ingredient.dragging {
-            opacity: 0.5;
+            position: relative;
+            cursor: pointer;
         }
         .ingredient.protein {
             background-color: #ffcccc;
@@ -119,33 +115,57 @@
             border: none;
             color: red;
             cursor: pointer;
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .days-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .days-modal {
+            background: white;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80%;
+            overflow-y: auto;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .day-button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background-color: #f0f0f0;
+            border: none;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 16px;
+        }
+        .day-button.protein {
+            background-color: #ffcccc;
+        }
+        .day-button.vegetable {
+            background-color: #ccffcc;
+        }
+        .day-button.starch {
+            background-color: #cce5ff;
         }
 
         /* Mobile Responsiveness */
         @media screen and (max-width: 768px) {
-            .meal-planner {
-                flex-direction: column;
-            }
-            .days-grid {
-                grid-template-columns: repeat(2, 1fr);
-                overflow-x: auto;
-            }
-            .day-column {
-                min-width: 100%;
-            }
             .ingredient-lists {
-                flex-direction: column;
-            }
-            .ingredient-list {
-                width: 100%;
-                max-width: 100%;
-            }
-            h1 {
-                font-size: 1.5rem;
-                text-align: center;
-            }
-            .day-column h2 {
-                font-size: 1.2rem;
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -154,7 +174,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useRef } = React;
 
         const App = () => {
             const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -177,53 +197,34 @@
                     }
                 }), {})
             );
+            const [selectedIngredient, setSelectedIngredient] = useState(null);
+            const [daysOverlayVisible, setDaysOverlayVisible] = useState(false);
+            const touchTimerRef = useRef(null);
 
-            // Prevent zooming on double-tap for mobile
-            useEffect(() => {
-                document.addEventListener('touchstart', function(event) {
-                    if (event.touches.length > 1) {
-                        event.preventDefault();
-                    }
-                }, { passive: false });
-
-                document.addEventListener('touchend', function(event) {
-                    if (event.touches.length > 1) {
-                        event.preventDefault();
-                    }
-                }, { passive: false });
-            }, []);
-
-            const handleDragStart = (e, item, type) => {
-                // Store both item and its type for validation during drop
-                e.dataTransfer.setData('text/plain', JSON.stringify({ item, type }));
-                e.target.classList.add('dragging');
+            const handleTouchStart = (ingredient, type) => {
+                touchTimerRef.current = setTimeout(() => {
+                    setSelectedIngredient({ item: ingredient, type });
+                    setDaysOverlayVisible(true);
+                }, 500); // 500ms long press
             };
 
-            const handleDragEnd = (e) => {
-                e.target.classList.remove('dragging');
-            };
-
-            const handleDragOver = (e, slot) => {
-                // Prevent drop if the dragged item type doesn't match the slot type
-                const data = JSON.parse(e.dataTransfer.getData('text/plain') || '{}');
-                if (data.type === slot) {
-                    e.preventDefault();
+            const handleTouchEnd = () => {
+                if (touchTimerRef.current) {
+                    clearTimeout(touchTimerRef.current);
                 }
             };
 
-            const handleDrop = (e, day, slot) => {
-                e.preventDefault();
-                const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-                
-                // Only allow drop if the dragged item type matches the slot type
-                if (data.type === slot) {
+            const handleAddToDay = (day, slot) => {
+                if (selectedIngredient && selectedIngredient.type === slot) {
                     setMealPlan(prev => ({
                         ...prev,
                         [day]: {
                             ...prev[day],
-                            [slot]: data.item
+                            [slot]: selectedIngredient.item
                         }
                     }));
+                    setDaysOverlayVisible(false);
+                    setSelectedIngredient(null);
                 }
             };
 
@@ -254,9 +255,11 @@
                             <div 
                                 key={index} 
                                 className={`ingredient ${type}`}
-                                draggable
-                                onDragStart={(e) => handleDragStart(e, item, type)}
-                                onDragEnd={handleDragEnd}
+                                onTouchStart={() => handleTouchStart(item, type)}
+                                onTouchEnd={handleTouchEnd}
+                                onMouseDown={() => handleTouchStart(item, type)}
+                                onMouseUp={handleTouchEnd}
+                                onMouseLeave={handleTouchEnd}
                             >
                                 <span>{item}</span>
                                 <button 
@@ -319,25 +322,13 @@
                             {days.map(day => (
                                 <div key={day} className="day-column">
                                     <h2>{day}</h2>
-                                    <div 
-                                        className="meal-slot protein-slot" 
-                                        onDragOver={(e) => handleDragOver(e, 'protein')}
-                                        onDrop={(e) => handleDrop(e, day, 'protein')}
-                                    >
+                                    <div className="meal-slot protein-slot">
                                         {mealPlan[day].protein || 'Protein'}
                                     </div>
-                                    <div 
-                                        className="meal-slot vegetable-slot" 
-                                        onDragOver={(e) => handleDragOver(e, 'vegetable')}
-                                        onDrop={(e) => handleDrop(e, day, 'vegetable')}
-                                    >
+                                    <div className="meal-slot vegetable-slot">
                                         {mealPlan[day].vegetable || 'Vegetable'}
                                     </div>
-                                    <div 
-                                        className="meal-slot starch-slot" 
-                                        onDragOver={(e) => handleDragOver(e, 'starch')}
-                                        onDrop={(e) => handleDrop(e, day, 'starch')}
-                                    >
+                                    <div className="meal-slot starch-slot">
                                         {mealPlan[day].starch || 'Starch'}
                                     </div>
                                 </div>
@@ -362,6 +353,34 @@
                                 onAdd={(ingredient) => handleAddIngredient('starch', ingredient)}
                                 onDelete={(ingredient) => handleDeleteIngredient('starch', ingredient)}
                             />
+                        </div>
+                    </div>
+
+                    <div 
+                        className="days-overlay" 
+                        style={{ display: daysOverlayVisible ? 'flex' : 'none' }}
+                        onClick={() => {
+                            setDaysOverlayVisible(false);
+                            setSelectedIngredient(null);
+                        }}
+                    >
+                        <div className="days-modal" onClick={(e) => e.stopPropagation()}>
+                            {selectedIngredient && days.map(day => (
+                                <div key={day} className="day-section">
+                                    <h2>{day}</h2>
+                                    {['protein', 'vegetable', 'starch'].map(slot => (
+                                        <button
+                                            key={slot}
+                                            className={`day-button ${slot}`}
+                                            onClick={() => handleAddToDay(day, slot)}
+                                            disabled={selectedIngredient.type !== slot}
+                                        >
+                                            {slot.charAt(0).toUpperCase() + slot.slice(1)} Slot
+                                            {mealPlan[day][slot] && `: ${mealPlan[day][slot]}`}
+                                        </button>
+                                    ))}
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
