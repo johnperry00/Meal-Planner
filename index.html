@@ -119,6 +119,9 @@
             .ingredient-section {
                 grid-template-columns: 1fr;
             }
+            .days-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -139,15 +142,14 @@
         class MealPlanner {
             constructor() {
                 this.days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+                this.selectedIngredient = null;
                 
-                // Default ingredients if no saved state
                 this.defaultIngredients = {
                     protein: ['Chicken', 'Beef', 'Fish', 'Tofu', 'Eggs', 'Pork', 'Shrimp'],
                     vegetable: ['Broccoli', 'Spinach', 'Carrots', 'Asparagus', 'Bell Peppers', 'Cauliflower', 'Zucchini'],
                     starch: ['Rice', 'Potatoes', 'Quinoa', 'Pasta', 'Sweet Potato', 'Bread', 'Couscous']
                 };
 
-                // Bind methods to ensure correct context
                 this.renderDays = this.renderDays.bind(this);
                 this.renderIngredients = this.renderIngredients.bind(this);
                 this.handleDescriptionChange = this.handleDescriptionChange.bind(this);
@@ -158,14 +160,14 @@
                 this.handleDrop = this.handleDrop.bind(this);
                 this.handleAddIngredient = this.handleAddIngredient.bind(this);
                 this.handleDeleteIngredient = this.handleDeleteIngredient.bind(this);
+                this.handleIngredientDoubleClick = this.handleIngredientDoubleClick.bind(this);
+                this.handleSlotDoubleClick = this.handleSlotDoubleClick.bind(this);
 
-                // Initialize with default ingredients
                 this.ingredients = JSON.parse(JSON.stringify(this.defaultIngredients));
                 this.mealPlan = {};
                 this.dayDescriptions = {};
                 this.mealDescriptions = {};
 
-                // Initialize days
                 this.days.forEach(day => {
                     this.mealPlan[day] = {
                         protein: [],
@@ -176,7 +178,6 @@
                     this.mealDescriptions[day] = '';
                 });
 
-                // Render everything
                 this.renderDays();
                 this.renderIngredients();
             }
@@ -202,7 +203,6 @@
                         </div>
                     `;
                     
-                    // Add event listeners for description changes
                     const descriptionTextarea = dayColumn.querySelector('.day-description');
                     descriptionTextarea.addEventListener('input', this.handleDescriptionChange);
 
@@ -236,7 +236,6 @@
                     : `${type.charAt(0).toUpperCase() + type.slice(1)}`;
             }
 
-            // Rest of the implementation remains the same as in the previous version
             renderIngredients() {
                 const ingredientSection = document.getElementById('ingredient-section');
                 ingredientSection.innerHTML = '';
@@ -274,6 +273,7 @@
                         `;
 
                         ingredientEl.addEventListener('dragstart', this.handleDragStart);
+                        ingredientEl.addEventListener('dblclick', this.handleIngredientDoubleClick);
                         
                         const deleteBtn = ingredientEl.querySelector('.delete-ingredient-btn');
                         deleteBtn.addEventListener('click', this.handleDeleteIngredient);
@@ -287,10 +287,10 @@
                 document.querySelectorAll('.meal-slot').forEach(slot => {
                     slot.addEventListener('dragover', this.handleDragOver);
                     slot.addEventListener('drop', this.handleDrop);
+                    slot.addEventListener('dblclick', this.handleSlotDoubleClick);
                 });
             }
 
-            // Remaining methods stay the same
             countIngredientOccurrences(type, item) {
                 return Object.values(this.mealPlan).reduce((total, day) => 
                     total + day[type].filter(i => i === item).length, 0
@@ -353,6 +353,54 @@
                 this.renderIngredients();
             }
 
+            handleIngredientDoubleClick(e) {
+                const ingredient = e.target.closest('.ingredient');
+                const type = ingredient.getAttribute('data-type');
+                const item = ingredient.getAttribute('data-item');
+                
+                // If this ingredient is already selected, deselect it
+                if (this.selectedIngredient && 
+                    this.selectedIngredient.type === type && 
+                    this.selectedIngredient.item === item) {
+                    this.selectedIngredient = null;
+                    document.querySelectorAll('.ingredient').forEach(el => 
+                        el.style.border = 'none'
+                    );
+                } else {
+                    // Deselect all other ingredients
+                    document.querySelectorAll('.ingredient').forEach(el => 
+                        el.style.border = 'none'
+                    );
+                    // Select this ingredient
+                    this.selectedIngredient = { type, item };
+                    ingredient.style.border = '2px solid blue';
+                }
+            }
+
+            handleSlotDoubleClick(e) {
+                const slot = e.target.closest('.meal-slot');
+                if (!this.selectedIngredient) return;
+
+                const slotType = slot.getAttribute('data-type');
+                const slotDay = slot.getAttribute('data-day');
+
+                // Only add if the types match and the ingredient isn't already in the slot
+                if (this.selectedIngredient.type === slotType) {
+                    const dayMeals = this.mealPlan[slotDay][slotType];
+                    if (!dayMeals.includes(this.selectedIngredient.item)) {
+                        dayMeals.push(this.selectedIngredient.item);
+                        this.renderDays();
+                        this.renderIngredients();
+                        
+                        // Deselect the ingredient after adding
+                        this.selectedIngredient = null;
+                        document.querySelectorAll('.ingredient').forEach(el => 
+                            el.style.border = 'none'
+                        );
+                    }
+                }
+            }
+
             handleRemoveMealItem(e) {
                 if (e.target.classList.contains('meal-item-remove')) {
                     const mealItem = e.target.closest('.meal-item');
@@ -360,17 +408,14 @@
                     const type = mealItem.getAttribute('data-type');
                     const item = mealItem.getAttribute('data-item');
 
-                    // Remove the item from the meal plan
                     this.mealPlan[day][type] = this.mealPlan[day][type].filter(i => i !== item);
 
-                    // Update display and counts
                     this.renderDays();
                     this.renderIngredients();
                 }
             }
         }
 
-        // Initialize the app when the page loads
         document.addEventListener('DOMContentLoaded', () => {
             new MealPlanner();
         });
